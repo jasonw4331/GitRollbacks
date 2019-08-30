@@ -81,11 +81,22 @@ class Main extends PluginBase implements Listener {
 		foreach($git->getBranches() ?? [] as $branch) {
 			if($branch === "master")
 				continue;
-			$count = substr($branch,"9");
+			$count = substr($branch, 9);
 			$count += (int)$count;
 		}
 		$git->createBranch("Rollback".$count, true);
 		self::recursiveCopyAddGit($this->getDataFolder().$level->getFolderName(), $level->getProvider()->getPath());
+	}
+
+	/**
+	 * @param Level $level
+	 *
+	 * @return string
+	 * @throws GitException
+	 */
+	public function getLastCommit(Level $level) : string {
+		$git = new GitRepository($this->getDataFolder().$level->getFolderName());
+		return $git->getLastCommitId();
 	}
 
 	/**
@@ -122,7 +133,7 @@ class Main extends PluginBase implements Listener {
 
 		if($initialCommit) {
 			$git->addAllChanges();
-			$git->commit("First Save");
+			$git->commit("First Backup");
 		}
 	}
 

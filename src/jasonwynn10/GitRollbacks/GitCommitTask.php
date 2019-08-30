@@ -3,29 +3,14 @@ declare(strict_types=1);
 
 namespace jasonwynn10\GitRollbacks;
 
-
 use Cz\Git\GitException;
 use Cz\Git\GitRepository;
 use pocketmine\scheduler\AsyncTask;
 
 class GitCommitTask extends AsyncTask {
 
-	/**
-	 * @var string
-	 */
-	private $worldFolder;
-	/**
-	 * @var string
-	 */
-	private $timestamp;
-	/**
-	 * @var string
-	 */
-	private $gitFolder;
-	/**
-	 * @var string
-	 */
-	private $levelName;
+	/** @var string */
+	private $worldFolder, $timestamp, $gitFolder, $levelName;
 
 	public function __construct(string $gitFolder, string $worldFolder, string $timestamp, string $levelName) {
 		$this->gitFolder = $gitFolder;
