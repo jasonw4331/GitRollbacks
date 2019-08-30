@@ -1,0 +1,13 @@
+{
+	"name": "jasonwynn10/GitRollbacks",
+	"type": "project",
+	"authors": [
+		{
+			"name": "jasonwynn10",
+			"email": "jasonwynn10@me.com"
+		}
+	],
+	"require": {
+		"czproject/git-php": "^v3.9.0"
+	}
+}
