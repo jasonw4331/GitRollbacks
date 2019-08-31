@@ -51,13 +51,17 @@ class RollbackCommand extends Command {
 		}
 
 		if(($dateTime = $this->isTimestamp($args[1])) instanceof \DateTime) {
-			$this->plugin->rollbackFromTimestamp($dateTime, $level); // TODO use async task
+			$this->plugin->rollbackFromTimestamp($dateTime, $level);
 			$sender->sendMessage(TextFormat::GREEN."Rollback Task for world '".$levelName."' started successfully");
 		}else{
-			$commitHash = $args[1];
+			$commitHash = strtolower($args[1]);
 			if($commitHash === "last")
 				$commitHash = $this->plugin->getLastCommit($level);
-			$this->plugin->rollbackFromCommit($commitHash, $level); // TODO use async task
+			if(strlen($commitHash) !== 7 and strlen($commitHash) !== 40) {
+				$sender->sendMessage(TextFormat::GREEN."Commit hashes must be 7 or 40 characters");
+				return true;
+			}
+			$this->plugin->rollbackFromCommit($commitHash, $level);
 			$sender->sendMessage(TextFormat::GREEN."Rollback Task for world '".$levelName."' started successfully");
 		}
 		return true;

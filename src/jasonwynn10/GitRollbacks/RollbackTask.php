@@ -4,12 +4,22 @@ declare(strict_types=1);
 namespace jasonwynn10\GitRollbacks;
 
 
+use Cz\Git\GitRepository;
 use pocketmine\scheduler\AsyncTask;
+use pocketmine\Server;
 
 class RollbackTask extends AsyncTask {
 
-	public function __construct() {
-		//TODO
+	/** @var string */
+	private $commitHash, $gitFolder, $levelName;
+	/** @var bool */
+	private $force;
+
+	public function __construct(string $gitFolder, string $levelName, string $commitHash, bool $force) {
+		$this->gitFolder = $gitFolder;
+		$this->commitHash = $commitHash;
+		$this->levelName = $levelName;
+		$this->force = $force;
 	}
 
 	/**
@@ -18,6 +28,21 @@ class RollbackTask extends AsyncTask {
 	 * @return void
 	 */
 	public function onRun() {
-		// TODO: Implement onRun() method.
+		ComposerDecoy::load();
+		$git = new GitRepository($this->gitFolder);
+		$git->checkout($this->commitHash);
+		$count = 1;
+		foreach($git->getBranches() ?? [] as $branch) {
+			if($branch === "master")
+				continue;
+			$count = substr($branch,"9");
+			$count += (int)$count;
+		}
+		$git->createBranch("Rollback".$count, true);
+		$level = Server::getInstance()->getLevelByName($this->levelName);
+		$return = Server::getInstance()->unloadLevel($level, $this->force); // force unload for rollback of default world
+		if(!$return)
+			return;
+		Main::recursiveCopyAddGit($this->gitFolder, $level->getProvider()->getPath());
 	}
 }

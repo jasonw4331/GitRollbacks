@@ -10,6 +10,7 @@ use pocketmine\event\level\LevelSaveEvent;
 use pocketmine\event\Listener;
 use pocketmine\level\Level;
 use pocketmine\plugin\PluginBase;
+use pocketmine\utils\Config;
 
 class Main extends PluginBase implements Listener {
 	public function onLoad() : void {
@@ -17,6 +18,8 @@ class Main extends PluginBase implements Listener {
 	}
 
 	public function onEnable() : void {
+		new Config($this->getDataFolder()."config.yml", Config::YAML, ["use-async" => true]);
+		$this->reloadConfig();
 		$this->getServer()->getPluginManager()->registerEvents($this, $this);
 		$this->getServer()->getCommandMap()->register("rollback", new RollbackCommand($this));
 	}
@@ -57,6 +60,10 @@ class Main extends PluginBase implements Listener {
 	public function rollbackFromTimestamp(\DateTime $timestamp, Level $level, bool $force = false) : bool {
 		$git = new GitRepository($this->getDataFolder().$level->getFolderName());
 		$commit = $this->findCommitByTimestamp($timestamp, $git);
+		if($this->getConfig()->get("use-async", true)) {
+			$this->getServer()->getAsyncPool()->submitTask(new RollbackTask($this->getDataFolder().$level->getFolderName(), $level->getFolderName(), $commit, $force));
+			return true;
+		}
 		$git->checkout($commit);
 		$count = 1;
 		foreach($git->getBranches() ?? [] as $branch) {
@@ -95,6 +102,9 @@ class Main extends PluginBase implements Listener {
 		$return = $this->getServer()->unloadLevel($level, $force); // force unload for rollback of default world
 		if(!$return)
 			return false;
+		if($this->getConfig()->get("use-async", true)) {
+			$this->getServer()->getAsyncPool()->submitTask(new RollbackTask($this->getDataFolder().$level->getFolderName(), $level->getFolderName(), $commit, $force));
+		}
 		self::recursiveCopyAddGit($this->getDataFolder().$level->getFolderName(), $level->getProvider()->getPath());
 		return true;
 	}
@@ -157,8 +167,14 @@ class Main extends PluginBase implements Listener {
 		$gitFolder = $this->getDataFolder().$event->getLevel()->getFolderName();
 		$worldFolder = $event->getLevel()->getProvider()->getPath();
 		$levelName = $event->getLevel()->getFolderName();
-		$time = (new \DateTime())->format('Y-m-d H:i:s');
-
-		$this->getServer()->getAsyncPool()->submitTask(new GitCommitTask($gitFolder, $worldFolder, $time, $levelName));
+		$timestamp = (new \DateTime())->format('Y-m-d H:i:s');
+		if($this->getConfig()->get("use-async", true)) {
+			$this->getServer()->getAsyncPool()->submitTask(new GitCommitTask($gitFolder, $worldFolder, $timestamp, $levelName));
+			return;
+		}
+		$git = new GitRepository($gitFolder);
+		Main::recursiveCopyAddGit($worldFolder, $gitFolder, $git);
+		$git->addAllChanges();
+		$git->commit($levelName." ".$timestamp);
 	}
 }
