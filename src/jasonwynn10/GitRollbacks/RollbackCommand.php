@@ -45,6 +45,11 @@ class RollbackCommand extends Command {
 			return true;
 		}
 
+		if(!isset($args[2]) and $level === $this->plugin->getServer()->getDefaultLevel()) {
+			$sender->sendMessage(TextFormat::RED."Are you sure you want to rollback the default world? If so, do /rollback ".$args[0]." ".$args[1]." confirm");
+			return true;
+		}
+
 		if(($dateTime = $this->isTimestamp($args[1])) instanceof \DateTime) {
 			$this->plugin->rollbackFromTimestamp($dateTime, $level); // TODO use async task
 			$sender->sendMessage(TextFormat::GREEN."Rollback Task for world '".$levelName."' started successfully");

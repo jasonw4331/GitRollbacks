@@ -12,13 +12,13 @@ use pocketmine\level\Level;
 use pocketmine\plugin\PluginBase;
 
 class Main extends PluginBase implements Listener {
-	public function onLoad() {
+	public function onLoad() : void {
 		ComposerDecoy::load();
 	}
 
 	public function onEnable() : void {
 		$this->getServer()->getPluginManager()->registerEvents($this, $this);
-		// TODO: rollback command
+		$this->getServer()->getCommandMap()->register("rollback", new RollbackCommand($this));
 	}
 
 	/**
@@ -49,10 +49,12 @@ class Main extends PluginBase implements Listener {
 	/**
 	 * @param \DateTime $timestamp
 	 * @param Level $level
+	 * @param bool $force
 	 *
+	 * @return bool
 	 * @throws GitException
 	 */
-	public function rollbackFromTimestamp(\DateTime $timestamp, Level $level) : void {
+	public function rollbackFromTimestamp(\DateTime $timestamp, Level $level, bool $force = false) : bool {
 		$git = new GitRepository($this->getDataFolder().$level->getFolderName());
 		$commit = $this->findCommitByTimestamp($timestamp, $git);
 		$git->checkout($commit);
@@ -64,17 +66,22 @@ class Main extends PluginBase implements Listener {
 			$count += (int)$count;
 		}
 		$git->createBranch("Rollback".$count, true);
-		$this->getServer()->unloadLevel($level, true); // force unload for rollback of default world
+		$return = $this->getServer()->unloadLevel($level, $force); // force unload for rollback of default world
+		if(!$return)
+			return false;
 		self::recursiveCopyAddGit($this->getDataFolder().$level->getFolderName(), $level->getProvider()->getPath());
+		return true;
 	}
 
 	/**
 	 * @param string $commit
 	 * @param Level $level
+	 * @param bool $force
 	 *
+	 * @return bool
 	 * @throws GitException
 	 */
-	public function rollbackFromCommit(string $commit, Level $level) : void {
+	public function rollbackFromCommit(string $commit, Level $level, bool $force = false) : bool {
 		$git = new GitRepository($this->getDataFolder().$level->getFolderName());
 		$git->checkout($commit);
 		$count = 1;
@@ -85,7 +92,11 @@ class Main extends PluginBase implements Listener {
 			$count += (int)$count;
 		}
 		$git->createBranch("Rollback".$count, true);
+		$return = $this->getServer()->unloadLevel($level, $force); // force unload for rollback of default world
+		if(!$return)
+			return false;
 		self::recursiveCopyAddGit($this->getDataFolder().$level->getFolderName(), $level->getProvider()->getPath());
+		return true;
 	}
 
 	/**
