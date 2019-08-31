@@ -1,0 +1,6 @@
+--- # Poggit-CI Manifest. Open the CI at https://poggit.pmmp.io/ci/jasonwynn10/GitRollbacks
+projects:
+  GitRollbacks:
+    path: ""
+    icon: "icon.png"
+...
