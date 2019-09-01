@@ -379,7 +379,6 @@
 		 * Returns last commit ID on current branch
 		 * `git log --pretty=format:"%H" -n 1`
 		 * @return string|NULL
-		 * @throws GitException
 		 */
 		public function getLastCommitId()
 		{
@@ -653,7 +652,7 @@
 		 * @return self
 		 * @throws GitException
 		 */
-		protected function run($cmd/*, $options = NULL*/)
+		protected function run($cmd)
 		{
 			$args = func_get_args();
 			$cmd = self::processCommand($args);
@@ -902,7 +901,6 @@
 		 * @param  string  commit ID
 		 * @param  bool    use %s instead of %B if TRUE
 		 * @return string
-		 * @throws GitException
 		 */
 		public function getCommitMessage($commit, $oneline = FALSE)
 		{
@@ -918,7 +916,6 @@
 		 * `git show --raw <sha1>`
 		 * @param  string  commit ID
 		 * @return array
-		 * @throws GitException
 		 */
 		public function getCommitData($commit)
 		{
