@@ -6,7 +6,7 @@
 	 * @license New BSD License (BSD-3), see file license.md
 	 */
 
-	namespace Cz\Git;
+	namespace czproject\GitPHP;
 
 	interface IGit
 	{

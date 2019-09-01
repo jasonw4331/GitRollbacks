@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace jasonwynn10\GitRollbacks;
 
-use Cz\Git\GitException;
-use Cz\Git\GitRepository;
+use czproject\GitPHP\GitException;
+use czproject\GitPHP\GitRepository;
 use pocketmine\event\level\LevelLoadEvent;
 use pocketmine\event\level\LevelSaveEvent;
 use pocketmine\event\Listener;
@@ -13,10 +13,6 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 
 class Main extends PluginBase implements Listener {
-	public function onLoad() : void {
-		ComposerDecoy::load();
-	}
-
 	public function onEnable() : void {
 		new Config($this->getDataFolder()."config.yml", Config::YAML, ["use-async" => true]);
 		$this->reloadConfig();
