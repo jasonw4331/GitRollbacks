@@ -24,6 +24,7 @@ class RollbackTask extends AsyncTask {
 	 * Actions to execute when run
 	 *
 	 * @return void
+	 * @throws \czproject\GitPHP\GitException
 	 */
 	public function onRun() {
 		$git = new GitRepository($this->gitFolder);

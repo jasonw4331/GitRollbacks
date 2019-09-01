@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace jasonwynn10\GitRollbacks;
 
+use czproject\GitPHP\GitException;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\command\utils\CommandException;
@@ -26,7 +27,7 @@ class RollbackCommand extends Command {
 	 * @param string[] $args
 	 *
 	 * @return bool
-	 * @throws CommandException
+	 * @throws CommandException|GitException
 	 */
 	public function execute(CommandSender $sender, string $commandLabel, array $args) {
 		if(!$this->testPermission($sender)){
