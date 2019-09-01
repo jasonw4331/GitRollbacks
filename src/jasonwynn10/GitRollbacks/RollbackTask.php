@@ -26,7 +26,6 @@ class RollbackTask extends AsyncTask {
 	 * @return void
 	 */
 	public function onRun() {
-		ComposerDecoy::load();
 		$git = new GitRepository($this->gitFolder);
 		$git->checkout($this->commitHash);
 		$count = 1;

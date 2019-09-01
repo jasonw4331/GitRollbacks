@@ -25,7 +25,6 @@ class GitCommitTask extends AsyncTask {
 	 * @throws GitException
 	 */
 	public function onRun() {
-		ComposerDecoy::load();
 		$git = new GitRepository($this->gitFolder);
 		Main::recursiveCopyAddGit($this->worldFolder, $this->gitFolder, $git);
 		$git->addAllChanges();
