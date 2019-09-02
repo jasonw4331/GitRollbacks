@@ -2,7 +2,6 @@
 declare(strict_types=1);
 namespace jasonwynn10\GitRollbacks;
 
-use czproject\GitPHP\GitRepository;
 use pocketmine\scheduler\AsyncTask;
 use pocketmine\Server;
 
@@ -24,7 +23,7 @@ class RollbackTask extends AsyncTask {
 	 * Actions to execute when run
 	 *
 	 * @return void
-	 * @throws \czproject\GitPHP\GitException
+	 * @throws GitException
 	 */
 	public function onRun() {
 		$git = new GitRepository($this->gitFolder);

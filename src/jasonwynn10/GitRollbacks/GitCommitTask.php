@@ -2,8 +2,6 @@
 declare(strict_types=1);
 namespace jasonwynn10\GitRollbacks;
 
-use czproject\GitPHP\GitException;
-use czproject\GitPHP\GitRepository;
 use pocketmine\scheduler\AsyncTask;
 
 class GitCommitTask extends AsyncTask {
