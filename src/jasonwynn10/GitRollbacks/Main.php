@@ -7,9 +7,19 @@ use pocketmine\event\level\LevelSaveEvent;
 use pocketmine\event\Listener;
 use pocketmine\level\Level;
 use pocketmine\plugin\PluginBase;
+use pocketmine\plugin\PluginException;
+use pocketmine\Server;
 use pocketmine\utils\Config;
+use pocketmine\utils\Utils;
 
 class Main extends PluginBase implements Listener {
+	public function onLoad() : void {
+		if(!$this->testGit()) {
+			Server::getInstance()->getAsyncPool()->submitTask(new GitInstallTask($this->getDataFolder()));
+			throw new PluginException("Git is not installed. Plugin startup will be delayed until the installation is completed.");
+		}
+	}
+
 	public function onEnable() : void {
 		new Config($this->getDataFolder()."config.yml", Config::YAML, ["use-async" => true]);
 		$this->reloadConfig();
@@ -169,5 +179,24 @@ class Main extends PluginBase implements Listener {
 		Main::recursiveCopyAddGit($worldFolder, $gitFolder, $git);
 		$git->addAllChanges();
 		$git->commit($levelName." ".$timestamp);
+	}
+
+	/**
+	 * @return bool
+	 */
+	private function testGit() : bool {
+		switch(Utils::getOS()) {
+			case "win":
+				// TODO: windows tests
+			break;
+			case "linux":
+				// TODO: linux tests
+			break;
+			case "mac":
+				// TODO: mac tests
+			break;
+			default:
+				throw new PluginException("The OS of this device does not support git installation.");
+		}
 	}
 }
