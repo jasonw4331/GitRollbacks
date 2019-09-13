@@ -186,14 +186,20 @@ class Main extends PluginBase implements Listener {
 	 */
 	private function testGit() : bool {
 		switch(Utils::getOS()) {
+			/** @noinspection PhpMissingBreakStatementInspection */
 			case "win":
-				// TODO: windows tests
-			break;
+				$cmd = "set PATH=%PATH%;".dirname($this->getDataFolder()."git");
+				if()
+					return;
 			case "linux":
-				// TODO: linux tests
-			break;
 			case "mac":
-				// TODO: mac tests
+				$ret = 0;
+				$cmd = 'git help -g';
+				try{
+					exec($cmd . ' 2>&1', $output, $ret);
+				}finally{
+					return $ret !== 0;
+				}
 			break;
 			default:
 				throw new PluginException("The OS of this device does not support git installation.");
