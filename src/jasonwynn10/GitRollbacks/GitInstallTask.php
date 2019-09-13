@@ -31,7 +31,9 @@ class GitInstallTask extends AsyncTask {
 	 */
 	public function onRun() {
 		if(Utils::getOS() == "win") {
-			file_put_contents($this->installPath."PortableGit-2.21.0-64-bit.7z.exe", fopen("https://github.com/git-for-windows/git/releases/download/v2.23.0.windows.1/PortableGit-2.23.0-64-bit.7z.exe", "r"));
+			file_put_contents($this->installPath."PortableGit-2.21.0-64-bit.7z.exe", $handle = fopen("https://github.com/git-for-windows/git/releases/download/v2.23.0.windows.1/PortableGit-2.23.0-64-bit.7z.exe", "r"));
+			fclose($handle);
+			exec("start PortableGit-2.21.0-64-bit.7z.exe"); // TODO install git without prompt or elevated privileges
 		}elseif(Utils::getOS() == "linux") {
 			// TODO: linux install
 		}elseif(Utils::getOS() == "mac") {
