@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 	/**
 	 * @author  Jan Pecha, <janpecha@email.cz>
 	 * @license New BSD License (BSD-3)
@@ -34,18 +35,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 	class GitRepository
 	{
-		/** @var  string */
+		/** @var string $repository */
 		protected $repository;
 
-		/** @var  string|NULL  @internal */
+		/** @var string|null $cwd @internal */
 		protected $cwd;
 
-
 		/**
-		 * @param  string
+		 * GitRepository constructor.
+		 *
+		 * @param string $repository
+		 *
 		 * @throws GitException
 		 */
-		public function __construct($repository)
+		public function __construct(string $repository)
 		{
 			if(basename($repository) === '.git')
 			{
@@ -54,46 +57,47 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 			$this->repository = realpath($repository);
 
-			if($this->repository === FALSE)
+			if($this->repository === false)
 			{
 				throw new GitException("Repository '$repository' not found.");
 			}
 		}
 
-
 		/**
 		 * @return string
 		 */
-		public function getRepositoryPath()
+		public function getRepositoryPath() : string
 		{
 			return $this->repository;
 		}
 
-
 		/**
 		 * Creates a tag.
 		 * `git tag <name>`
-		 * @param  string
-		 * @param  array|NULL
+		 *
+		 * @param string $name
+		 * @param string[]|null $options
+		 *
+		 * @return GitRepository
 		 * @throws GitException
-		 * @return self
 		 */
-		public function createTag($name, $options = NULL)
+		public function createTag(string $name, ?array $options = null) : self
 		{
 			return $this->begin()
 				->run('git tag', $options, $name)
 				->end();
 		}
 
-
 		/**
 		 * Removes tag.
 		 * `git tag -d <name>`
-		 * @param  string
+		 *
+		 * @param string $name
+		 *
+		 * @return GitRepository
 		 * @throws GitException
-		 * @return self
 		 */
-		public function removeTag($name)
+		public function removeTag(string $name) : self
 		{
 			return $this->begin()
 				->run('git tag', array(
@@ -102,17 +106,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 				->end();
 		}
 
-
 		/**
 		 * Renames tag.
 		 * `git tag <new> <old>`
 		 * `git tag -d <old>`
-		 * @param  string
-		 * @param  string
+		 *
+		 * @param string $oldName
+		 * @param string $newName
+		 *
+		 * @return GitRepository
 		 * @throws GitException
-		 * @return self
 		 */
-		public function renameTag($oldName, $newName)
+		public function renameTag(string $oldName, string $newName) : self
 		{
 			return $this->begin()
 				// http://stackoverflow.com/a/1873932
@@ -123,44 +128,46 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 				->end();
 		}
 
-
 		/**
 		 * Returns list of tags in repo.
-		 * @return string[]|NULL  NULL => no tags
+		 *
+		 * @return string[]|null
 		 * @throws GitException
 		 */
-		public function getTags()
+		public function getTags() : ?array
 		{
 			return $this->extractFromCommand('git tag', 'trim');
 		}
 
-
 		/**
 		 * Merges branches.
 		 * `git merge <options> <name>`
-		 * @param  string
-		 * @param  array|NULL
+		 *
+		 * @param string $branch
+		 * @param string[]|null $options
+		 *
+		 * @return GitRepository
 		 * @throws GitException
-		 * @return self
 		 */
-		public function merge($branch, $options = NULL)
+		public function merge(string $branch, ?array $options = null) : self
 		{
 			return $this->begin()
 				->run('git merge', $options, $branch)
 				->end();
 		}
 
-
 		/**
 		 * Creates new branch.
 		 * `git branch <name>`
-		 * (optionaly) `git checkout <name>`
-		 * @param  string
-		 * @param  bool
+		 * (optional) `git checkout <name>`
+		 *
+		 * @param string $name
+		 * @param bool $checkout
+		 *
+		 * @return GitRepository
 		 * @throws GitException
-		 * @return self
 		 */
-		public function createBranch($name, $checkout = FALSE)
+		public function createBranch(string $name, bool $checkout = false) : self
 		{
 			$this->begin();
 
@@ -175,15 +182,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			return $this->end();
 		}
 
-
 		/**
 		 * Removes branch.
 		 * `git branch -d <name>`
-		 * @param  string
+		 *
+		 * @param string $name
+		 *
+		 * @return GitRepository
 		 * @throws GitException
-		 * @return self
 		 */
-		public function removeBranch($name)
+		public function removeBranch(string $name) : self
 		{
 			return $this->begin()
 				->run('git branch', array(
@@ -192,14 +200,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 				->end();
 		}
 
-
 		/**
 		 * Gets name of current branch
 		 * `git branch` + magic
-		 * @return string
+		 *
+		 * @return string|null
 		 * @throws GitException
 		 */
-		public function getCurrentBranchName()
+		public function getCurrentBranchName() : ?string
 		{
 			try
 			{
@@ -209,7 +217,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 						return trim(substr($value, 1));
 					}
 
-					return FALSE;
+					return false;
 				});
 
 				if(is_array($branch))
@@ -221,75 +229,72 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			throw new GitException('Getting current branch name failed.');
 		}
 
-
 		/**
 		 * Returns list of all (local & remote) branches in repo.
-		 * @return string[]|NULL  NULL => no branches
+		 *
+		 * @return string[]|null
 		 * @throws GitException
 		 */
-		public function getBranches()
+		public function getBranches() : ?array
 		{
 			return $this->extractFromCommand('git branch -a', function($value) {
 				return trim(substr($value, 1));
 			});
 		}
 
-
 		/**
 		 * Returns list of remote branches in repo.
-		 * @return string[]|NULL  NULL => no branches
+		 *
+		 * @return string[]|null
 		 * @throws GitException
 		 */
-		public function getRemoteBranches()
+		public function getRemoteBranches() : ?array
 		{
 			return $this->extractFromCommand('git branch -r', function($value) {
 				return trim(substr($value, 1));
 			});
 		}
 
-
 		/**
 		 * Returns list of local branches in repo.
-		 * @return string[]|NULL  NULL => no branches
+		 *
+		 * @return string[]|null
 		 * @throws GitException
 		 */
-		public function getLocalBranches()
+		public function getLocalBranches() : ?array
 		{
 			return $this->extractFromCommand('git branch', function($value) {
 				return trim(substr($value, 1));
 			});
 		}
 
-
 		/**
 		 * Checkout branch.
 		 * `git checkout <branch>`
-		 * @param  string
+		 *
+		 * @param string $name
+		 *
+		 * @return GitRepository
 		 * @throws GitException
-		 * @return self
 		 */
-		public function checkout($name)
+		public function checkout(string $name) : self
 		{
 			return $this->begin()
 				->run('git checkout', $name)
 				->end();
 		}
 
-
 		/**
 		 * Removes file(s).
 		 * `git rm <file>`
-		 * @param  string|string[]
+		 *
+		 * @param string[] $file
+		 *
+		 * @return GitRepository
 		 * @throws GitException
-		 * @return self
 		 */
-		public function removeFile($file)
+		public function removeFile(array $file) : self
 		{
-			if(!is_array($file))
-			{
-				$file = func_get_args();
-			}
-
 			$this->begin();
 
 			foreach($file as $item)
@@ -300,21 +305,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			return $this->end();
 		}
 
-
 		/**
-		 * Adds file(s).
+		 * Adds files.
 		 * `git add <file>`
-		 * @param  string|string[]
+		 *
+		 * @param string[] $file
+		 *
+		 * @return GitRepository
 		 * @throws GitException
-		 * @return self
 		 */
-		public function addFile($file)
+		public function addFiles(array $file) : self
 		{
-			if(!is_array($file))
-			{
-				$file = func_get_args();
-			}
-
 			$this->begin();
 
 			foreach($file as $item)
@@ -333,30 +334,31 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			return $this->end();
 		}
 
-
 		/**
 		 * Adds all created, modified & removed files.
 		 * `git add --all`
+		 *
+		 * @return GitRepository
 		 * @throws GitException
-		 * @return self
 		 */
-		public function addAllChanges()
+		public function addAllChanges() : self
 		{
 			return $this->begin()
 				->run('git add --all')
 				->end();
 		}
 
-
 		/**
 		 * Renames file(s).
 		 * `git mv <file>`
-		 * @param  string|string[]  from: array('from' => 'to', ...) || (from, to)
-		 * @param  string|NULL
+		 *
+		 * @param string[]|string $file
+		 * @param string|null $to
+		 *
+		 * @return GitRepository
 		 * @throws GitException
-		 * @return self
 		 */
-		public function renameFile($file, $to = NULL)
+		public function renameFile($file, ?string $to = null) : self
 		{
 			if(!is_array($file)) // rename(file, to);
 			{
@@ -375,16 +377,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			return $this->end();
 		}
 
-
 		/**
 		 * Commits changes
 		 * `git commit <params> -m <message>`
-		 * @param  string
-		 * @param  string[]  param => value
+		 *
+		 * @param string $message
+		 * @param string[]|null $params
+		 *
+		 * @return GitRepository
 		 * @throws GitException
-		 * @return self
 		 */
-		public function commit($message, $params = NULL)
+		public function commit(string $message, ?array $params = null) : self
 		{
 			if(!is_array($params))
 			{
@@ -392,19 +395,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			}
 
 			return $this->begin()
-				->run("git commit", $params, array(
+				->run('git commit', $params, array(
 					'-m' => $message,
 				))
 				->end();
 		}
 
-
 		/**
 		 * Returns last commit ID on current branch
 		 * `git log --pretty=format:"%H" -n 1`
-		 * @return string|NULL
+		 *
+		 * @return string|null
 		 */
-		public function getLastCommitId()
+		public function getLastCommitId() : ?string
 		{
 			$this->begin();
 			$lastLine = exec('git log --pretty=format:"%H" -n 1 2>&1');
@@ -412,17 +415,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			if (preg_match('/^[0-9a-f]{40}$/i', $lastLine)) {
 				return $lastLine;
 			}
-			return NULL;
+			return null;
 		}
-
 
 		/**
 		 * Exists changes?
 		 * `git status` + magic
+		 *
 		 * @return bool
 		 * @throws GitException
 		 */
-		public function hasChanges()
+		public function hasChanges() : bool
 		{
 			// Make sure the `git status` gets a refreshed look at the working tree.
 			$this->begin()
@@ -433,25 +436,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			return !empty($output);
 		}
 
-
-		/**
-		 * @deprecated
-		 * @throws GitException
-		 */
-		public function isChanges()
-		{
-			return $this->hasChanges();
-		}
-
-
 		/**
 		 * Pull changes from a remote
-		 * @param  string|NULL
-		 * @param  array|NULL
-		 * @return self
+		 *
+		 * @param string|null $remote
+		 * @param string[]|null $params
+		 *
+		 * @return GitRepository
 		 * @throws GitException
 		 */
-		public function pull($remote = NULL, array $params = NULL)
+		public function pull(?string $remote = null, ?array $params = null) : self
 		{
 			if(!is_array($params))
 			{
@@ -459,19 +453,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			}
 
 			return $this->begin()
-				->run("git pull $remote", $params)
+				->run('git pull '.$remote, $params)
 				->end();
 		}
-
 
 		/**
 		 * Push changes to a remote
-		 * @param  string|NULL
-		 * @param  array|NULL
-		 * @return self
+		 *
+		 * @param string|null $remote
+		 * @param string[]|null $params
+		 *
+		 * @return GitRepository
 		 * @throws GitException
 		 */
-		public function push($remote = NULL, array $params = NULL)
+		public function push(?string $remote = null, ?array $params = null) : self
 		{
 			if(!is_array($params))
 			{
@@ -479,19 +474,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			}
 
 			return $this->begin()
-				->run("git push $remote", $params)
+				->run('git push '.$remote, $params)
 				->end();
 		}
-
 
 		/**
 		 * Run fetch command to get latest branches
-		 * @param  string|NULL
-		 * @param  array|NULL
-		 * @return self
+		 *
+		 * @param string|null $remote
+		 * @param array|null $params
+		 *
+		 * @return GitRepository
 		 * @throws GitException
 		 */
-		public function fetch($remote = NULL, array $params = NULL)
+		public function fetch(?string $remote = null, ?array $params = null) : self
 		{
 			if(!is_array($params))
 			{
@@ -499,78 +495,82 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			}
 
 			return $this->begin()
-				->run("git fetch $remote", $params)
+				->run('git fetch '.$remote, $params)
 				->end();
 		}
 
-
 		/**
 		 * Adds new remote repository
-		 * @param  string
-		 * @param  string
-		 * @param  array|NULL
-		 * @return self
+		 *
+		 * @param string $name
+		 * @param string $url
+		 * @param string[]|null $params
+		 *
+		 * @return GitRepository
 		 * @throws GitException
 		 */
-		public function addRemote($name, $url, array $params = NULL)
+		public function addRemote(string $name, string $url, ?array $params = null) : self
 		{
 			return $this->begin()
 				->run('git remote add', $params, $name, $url)
 				->end();
 		}
 
-
 		/**
 		 * Renames remote repository
-		 * @param  string
-		 * @param  string
-		 * @return self
+		 *
+		 * @param string $oldName
+		 * @param string $newName
+		 *
+		 * @return GitRepository
 		 * @throws GitException
 		 */
-		public function renameRemote($oldName, $newName)
+		public function renameRemote(string $oldName, string $newName) : self
 		{
 			return $this->begin()
 				->run('git remote rename', $oldName, $newName)
 				->end();
 		}
 
-
 		/**
 		 * Removes remote repository
-		 * @param  string
-		 * @return self
+		 *
+		 * @param string $name
+		 *
+		 * @return GitRepository
 		 * @throws GitException
 		 */
-		public function removeRemote($name)
+		public function removeRemote(string $name) : self
 		{
 			return $this->begin()
 				->run('git remote remove', $name)
 				->end();
 		}
 
-
 		/**
 		 * Changes remote repository URL
-		 * @param  string
-		 * @param  string
-		 * @param  array|NULL
-		 * @return self
+		 *
+		 * @param string $name
+		 * @param string $url
+		 * @param string[]|null $params
+		 *
+		 * @return GitRepository
 		 * @throws GitException
 		 */
-		public function setRemoteUrl($name, $url, array $params = NULL)
+		public function setRemoteUrl(string $name, string $url, ?array $params = null) : self
 		{
 			return $this->begin()
 				->run('git remote set-url', $params, $name, $url)
 				->end();
 		}
 
-
 		/**
-		 * @param  string|string[]
-		 * @return string[]  returns output
+		 * @param string[] $cmd
+		 *
+		 * @return mixed
 		 * @throws GitException
 		 */
-		public function execute($cmd)
+		public function execute(array $cmd)
 		{
 			if (!is_array($cmd)) {
 				$cmd = array($cmd);
@@ -593,11 +593,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 		/**
-		 * @return self
+		 * @return GitRepository
 		 */
-		protected function begin()
+		protected function begin() : self
 		{
-			if($this->cwd === NULL) // TODO: good idea??
+			if($this->cwd === null) // TODO: good idea??
 			{
 				$this->cwd = getcwd();
 				chdir($this->repository);
@@ -608,30 +608,30 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 		/**
-		 * @return self
+		 * @return GitRepository
 		 */
-		protected function end()
+		protected function end() : self
 		{
 			if(is_string($this->cwd))
 			{
 				chdir($this->cwd);
 			}
 
-			$this->cwd = NULL;
+			$this->cwd = null;
 			return $this;
 		}
 
-
 		/**
-		 * @param  string
-		 * @param  callable|NULL
-		 * @return string[]|NULL
+		 * @param string $cmd
+		 * @param callable|null $filter
+		 *
+		 * @return array|null
 		 * @throws GitException
 		 */
-		protected function extractFromCommand($cmd, $filter = NULL)
+		protected function extractFromCommand(string $cmd, ?callable $filter = null) : ?array
 		{
 			$output = array();
-			$exitCode = NULL;
+			$exitCode = null;
 
 			$this->begin();
 			exec("$cmd", $output, $exitCode);
@@ -642,7 +642,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 				throw new GitException("Command $cmd failed.");
 			}
 
-			if($filter !== NULL)
+			if($filter !== null)
 			{
 				$newArray = array();
 
@@ -650,7 +650,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 				{
 					$value = $filter($line);
 
-					if($value === FALSE)
+					if($value === false)
 					{
 						continue;
 					}
@@ -663,20 +663,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 			if(!isset($output[0])) // empty array
 			{
-				return NULL;
+				return null;
 			}
 
 			return $output;
 		}
 
-
 		/**
 		 * Runs command.
-		 * @param  string|array
-		 * @return self
+		 *
+		 * @param string|string[] $cmd
+		 *
+		 * @return GitRepository
 		 * @throws GitException
 		 */
-		protected function run($cmd)
+		protected function run($cmd) : self
 		{
 			$args = func_get_args();
 			$cmd = self::processCommand($args);
@@ -691,7 +692,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		}
 
 
-		protected static function processCommand(array $args)
+		/**
+		 * @param array $args
+		 *
+		 * @return string
+		 */
+		protected static function processCommand(array $args) : string
 		{
 			$cmd = array();
 
@@ -722,22 +728,23 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			return "$programName " . implode(' ', $cmd);
 		}
 
-
 		/**
 		 * Init repo in directory
-		 * @param  string
-		 * @param  array|NULL
-		 * @return self
+		 *
+		 * @param string $directory
+		 * @param string[]|null $params
+		 *
+		 * @return GitRepository
 		 * @throws GitException
 		 */
-		public static function init($directory, array $params = NULL)
+		public static function init(string $directory, ?array $params = null) : self
 		{
 			if(is_dir("$directory/.git"))
 			{
 				throw new GitException("Repo already exists in $directory.");
 			}
 
-			if(!is_dir($directory) && !@mkdir($directory, 0777, TRUE)) // intentionally @; not atomic; from Nette FW
+			if(!is_dir($directory) && !@mkdir($directory, 0777, true)) // intentionally @; not atomic; from Nette FW
 			{
 				throw new GitException("Unable to create directory '$directory'.");
 			}
@@ -761,25 +768,26 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			return new static($repo);
 		}
 
-
 		/**
 		 * Clones GIT repository from $url into $directory
-		 * @param  string
-		 * @param  string|NULL
-		 * @param  array|NULL
-		 * @return self
+		 *
+		 * @param string $url
+		 * @param string|null $directory
+		 * @param string[]|null $params
+		 *
+		 * @return GitRepository
 		 * @throws GitException
 		 */
-		public static function cloneRepository($url, $directory = NULL, array $params = NULL)
+		public static function cloneRepository(string $url, ?string $directory = null, ?array $params = null) : self
 		{
-			if($directory !== NULL && is_dir("$directory/.git"))
+			if($directory !== null && is_dir("$directory/.git"))
 			{
 				throw new GitException("Repo already exists in $directory.");
 			}
 
 			$cwd = getcwd();
 
-			if($directory === NULL)
+			if($directory === null)
 			{
 				$directory = self::extractRepositoryNameFromUrl($url);
 				$directory = "$cwd/$directory";
@@ -789,7 +797,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 				$directory = "$cwd/$directory";
 			}
 
-			if ($params === NULL) {
+			if ($params === null) {
 				$params = '-q';
 			}
 
@@ -817,7 +825,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			$stdout = '';
 			$stderr = '';
 
-			while (TRUE)
+			while (true)
 			{
 				// Read standard output
 				$output = fgets($pipes[0], 1024);
@@ -836,7 +844,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 				}
 
 				// We are done
-				if ((feof($pipes[0]) OR $output === FALSE) AND (feof($pipes[2]) OR $output_err === FALSE))
+				if ((feof($pipes[0]) OR $output === false) AND (feof($pipes[2]) OR $output_err === false))
 				{
 					break;
 				}
@@ -852,19 +860,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			return new static($directory);
 		}
 
-
 		/**
-		 * @param  string
-		 * @param  array|NULL
+		 * @param string $url
+		 * @param string[]|null $refs
+		 *
 		 * @return bool
 		 */
-		public static function isRemoteUrlReadable($url, array $refs = NULL)
+		public static function isRemoteUrlReadable(string $url, ?array $refs = null) : bool
 		{
-			$env = '';
-
 			if (DIRECTORY_SEPARATOR === '\\') { // Windows
 				$env = 'set GIT_TERMINAL_PROMPT=0 &&';
-
 			} else {
 				$env = 'GIT_TERMINAL_PROMPT=0';
 			}
@@ -881,12 +886,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			return $returnCode === 0;
 		}
 
-
 		/**
-		 * @param  string  /path/to/repo.git | host.xz:foo/.git | ...
-		 * @return string  repo | foo | ...
+		 * @param string $url /path/to/repo.git | host.xz:foo/.git | ...
+		 *
+		 * @return string repo | foo | ...
 		 */
-		public static function extractRepositoryNameFromUrl($url)
+		public static function extractRepositoryNameFromUrl(string $url) : string
 		{
 			// /path/to/repo.git => repo
 			// host.xz:foo/.git => foo
@@ -898,7 +903,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 			$directory = basename($directory, '.git');
 
-			if(($pos = strrpos($directory, ':')) !== FALSE)
+			if(($pos = strrpos($directory, ':')) !== false)
 			{
 				$directory = substr($directory, $pos + 1);
 			}
@@ -906,27 +911,30 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			return $directory;
 		}
 
-
 		/**
 		 * Is path absolute?
 		 * Method from Nette\Utils\FileSystem
-		 * @link   https://github.com/nette/nette/blob/master/Nette/Utils/FileSystem.php
+		 * @link https://github.com/nette/nette/blob/master/Nette/Utils/FileSystem.php
+		 *
+		 * @param string $path
+		 *
 		 * @return bool
 		 */
-		public static function isAbsolute($path)
+		public static function isAbsolute(string $path) : bool
 		{
 			return (bool) preg_match('#[/\\\\]|[a-zA-Z]:[/\\\\]|[a-z][a-z0-9+.-]*://#Ai', $path);
 		}
 
-
 		/**
 		 * Returns commit message from specific commit
 		 * `git log -1 --format={%s|%B} )--pretty=format:'%H' -n 1`
-		 * @param  string  commit ID
-		 * @param  bool    use %s instead of %B if TRUE
+		 *
+		 * @param string $commit commit hash
+		 * @param bool $oneline use %s instead of %B if true
+		 *
 		 * @return string
 		 */
-		public function getCommitMessage($commit, $oneline = FALSE)
+		public function getCommitMessage(string $commit, bool $oneline = false) : string
 		{
 			$this->begin();
 			exec('git log -1 --format=' . ($oneline ? '%s' : '%B') . ' ' . $commit . ' 2>&1', $message);
@@ -934,17 +942,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			return implode(PHP_EOL, $message);
 		}
 
-
 		/**
 		 * Returns array of commit metadata from specific commit
 		 * `git show --raw <sha1>`
-		 * @param  string  commit ID
+		 *
+		 * @param string $commit
+		 *
 		 * @return array
 		 */
-		public function getCommitData($commit)
+		public function getCommitData(string $commit) : array
 		{
 			$message = $this->getCommitMessage($commit);
-			$subject = $this->getCommitMessage($commit, TRUE);
+			$subject = $this->getCommitMessage($commit, true);
 
 			$this->begin();
 			exec('git show --raw ' . $commit . ' 2>&1', $output);
@@ -953,9 +962,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 				'commit' => $commit,
 				'subject' => $subject,
 				'message' => $message,
-				'author' => NULL,
-				'committer' => NULL,
-				'date' => NULL,
+				'author' => null,
+				'committer' => null,
+				'date' => null,
 			);
 
 			// git show is a porcelain command and output format may changes
@@ -965,19 +974,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 					$data['author'] = trim($author[1]);
 					unset($output[$index]);
 				}
-
 				if (preg_match('`Commit: *(.*)`', $info, $committer)) {
 					$data['committer'] = trim($committer[1]);
 					unset($output[$index]);
 				}
-
 				if (preg_match('`Date: *(.*)`', $info, $date)) {
 					$data['date'] = trim($date[1]);
 					unset($output[$index]);
 				}
 			}
-
 			return $data;
 		}
-
 	}

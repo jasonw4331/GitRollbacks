@@ -35,7 +35,7 @@ class Main extends PluginBase implements Listener {
 				else {
 					copy($source . '/' . $file, $destination . '/' . $file);
 					if($git !== null)
-						$git->addFile($destination.DIRECTORY_SEPARATOR.$file);
+						$git->addFiles([$destination.DIRECTORY_SEPARATOR.$file]);
 				}
 			}
 		}
