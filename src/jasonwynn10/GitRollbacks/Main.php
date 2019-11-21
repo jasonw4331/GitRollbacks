@@ -188,15 +188,33 @@ class Main extends PluginBase implements Listener {
 		switch(Utils::getOS()) {
 			/** @noinspection PhpMissingBreakStatementInspection */
 			case "win":
-				$cmd = "set PATH=%PATH%;".dirname($this->getDataFolder()."git");
-				if()
-					return;
+				$cmd = 'git help -g';
+				try{
+					exec($cmd . ' 2>&1', $output, $ret);
+					var_dump($output);
+				}finally{
+					$return = ($ret !== 0);
+					if($return)
+						return $return;
+				}
+				$pathCmd = "set PATH=%PATH%;".realpath($this->getDataFolder()."git");
+				try{
+					exec($pathCmd, $output, $ret); // TODO: set git exe to portable and attempt to run.
+					var_dump($output);
+					exec($cmd . ' 2>&1', $output, $ret);
+					var_dump($output);
+				}finally{
+					$return = ($ret !== 0);
+				}
+				return $return;
+			break;
 			case "linux":
-			case "mac":
+			case "mac": // TODO: is mac different?
 				$ret = 0;
 				$cmd = 'git help -g';
 				try{
 					exec($cmd . ' 2>&1', $output, $ret);
+					var_dump($output);
 				}finally{
 					return $ret !== 0;
 				}
