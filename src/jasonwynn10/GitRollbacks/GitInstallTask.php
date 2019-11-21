@@ -35,12 +35,16 @@ class GitInstallTask extends AsyncTask {
 			fclose($handle);
 			$archive = new \ZipArchive();
 			if($archive->open($this->installPath."PortableGit.zip")) {
-				$archive->extractTo($this->installPath);
+				$archive->extractTo(realpath($this->installPath.DIRECTORY_SEPARATOR."git"));
 				$archive->close();
 			}
-			exec("set PATH=%PATH%;".$this->installPath);
+			exec("set PATH=%PATH%;".realpath($this->installPath.DIRECTORY_SEPARATOR."git".DIRECTORY_SEPARATOR."cmd"));
+			GitRepository::setGitInstallation(realpath($this->installPath.DIRECTORY_SEPARATOR."git".DIRECTORY_SEPARATOR."cmd".DIRECTORY_SEPARATOR."git.exe"));
 		}elseif(Utils::getOS() == "linux") {
-			// TODO: linux install
+			try{
+				exec("apt-get install git", $output, $ret); // TODO: linux install
+				var_dump($output, $ret);
+			}catch(\Exception $e){}
 		}elseif(Utils::getOS() == "mac") {
 			// TODO: mac install
 		}

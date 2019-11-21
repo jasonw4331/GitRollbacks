@@ -71,7 +71,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		public static function setGitInstallation(string $path) : void {
 			$path = realpath($path);
 			if($path !== false)
-				self::$git = realpath($path);
+				self::$git = $path;
 		}
 
 		/**
