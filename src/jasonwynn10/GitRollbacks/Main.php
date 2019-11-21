@@ -14,6 +14,9 @@ use pocketmine\utils\Utils;
 
 class Main extends PluginBase implements Listener {
 	public function onLoad() : void {
+		if(!in_array(Utils::getOS(), ["win", "linux", "mac"])) {
+			throw new PluginException("GitRollbacks is currently designed to function on Windows and Linux based devices. Your device is not compatible."); // TODO: BSD support
+		}
 		if(!$this->testGit()) {
 			Server::getInstance()->getAsyncPool()->submitTask(new GitInstallTask($this->getDataFolder()));
 			throw new PluginException("Git is not installed. Plugin startup will be delayed until the installation is completed.");
