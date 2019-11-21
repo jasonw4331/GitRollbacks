@@ -35,6 +35,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 	class GitRepository
 	{
+		/** @var string $git */
+		private static $git;
 		/** @var string $repository */
 		protected $repository;
 
@@ -64,6 +66,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		}
 
 		/**
+		 * @param string $path
+		 */
+		public static function setGitInstallation(string $path) : void {
+			$path = realpath($path);
+			if($path !== false)
+				self::$git = realpath($path);
+		}
+
+		/**
 		 * @return string
 		 */
 		public function getRepositoryPath() : string
@@ -84,7 +95,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		public function createTag(string $name, ?array $options = null) : self
 		{
 			return $this->begin()
-				->run('git tag', $options, $name)
+				->run(self::$git.' tag', $options, $name)
 				->end();
 		}
 
@@ -100,7 +111,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		public function removeTag(string $name) : self
 		{
 			return $this->begin()
-				->run('git tag', array(
+				->run(self::$git.' tag', array(
 					'-d' => $name,
 				))
 				->end();
@@ -122,7 +133,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			return $this->begin()
 				// http://stackoverflow.com/a/1873932
 				// create new as alias to old (`git tag NEW OLD`)
-				->run('git tag', $newName, $oldName)
+				->run(self::$git.' tag', $newName, $oldName)
 				// delete old (`git tag -d OLD`)
 				->removeTag($oldName) // WARN! removeTag() calls end() method!!!
 				->end();
@@ -136,7 +147,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		 */
 		public function getTags() : ?array
 		{
-			return $this->extractFromCommand('git tag', 'trim');
+			return $this->extractFromCommand(self::$git.' tag', 'trim');
 		}
 
 		/**
@@ -152,7 +163,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		public function merge(string $branch, ?array $options = null) : self
 		{
 			return $this->begin()
-				->run('git merge', $options, $branch)
+				->run(self::$git.' merge', $options, $branch)
 				->end();
 		}
 
@@ -172,7 +183,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			$this->begin();
 
 			// git branch $name
-			$this->run('git branch', $name);
+			$this->run(self::$git.' branch', $name);
 
 			if($checkout)
 			{
@@ -194,7 +205,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		public function removeBranch(string $name) : self
 		{
 			return $this->begin()
-				->run('git branch', array(
+				->run(self::$git.' branch', array(
 					'-d' => $name,
 				))
 				->end();
@@ -211,7 +222,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		{
 			try
 			{
-				$branch = $this->extractFromCommand('git branch -a', function($value) {
+				$branch = $this->extractFromCommand(self::$git.' branch -a', function($value) {
 					if(isset($value[0]) && $value[0] === '*')
 					{
 						return trim(substr($value, 1));
@@ -237,7 +248,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		 */
 		public function getBranches() : ?array
 		{
-			return $this->extractFromCommand('git branch -a', function($value) {
+			return $this->extractFromCommand(self::$git.' branch -a', function($value) {
 				return trim(substr($value, 1));
 			});
 		}
@@ -250,7 +261,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		 */
 		public function getRemoteBranches() : ?array
 		{
-			return $this->extractFromCommand('git branch -r', function($value) {
+			return $this->extractFromCommand(self::$git.' branch -r', function($value) {
 				return trim(substr($value, 1));
 			});
 		}
@@ -263,7 +274,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		 */
 		public function getLocalBranches() : ?array
 		{
-			return $this->extractFromCommand('git branch', function($value) {
+			return $this->extractFromCommand(self::$git.' branch', function($value) {
 				return trim(substr($value, 1));
 			});
 		}
@@ -280,7 +291,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		public function checkout(string $name) : self
 		{
 			return $this->begin()
-				->run('git checkout', $name)
+				->run(self::$git.' checkout', $name)
 				->end();
 		}
 
@@ -299,7 +310,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 			foreach($file as $item)
 			{
-				$this->run('git rm', $item, '-r');
+				$this->run(self::$git.' rm', $item, '-r');
 			}
 
 			return $this->end();
@@ -328,7 +339,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 					throw new GitException("The path at '$item' does not represent a valid file.");
 				}
 
-				$this->run('git add', $item);
+				$this->run(self::$git.' add', $item);
 			}
 
 			return $this->end();
@@ -344,7 +355,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		public function addAllChanges() : self
 		{
 			return $this->begin()
-				->run('git add --all')
+				->run(self::$git.' add --all')
 				->end();
 		}
 
@@ -371,7 +382,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 			foreach($file as $from => $to)
 			{
-				$this->run('git mv', $from, $to);
+				$this->run(self::$git.' mv', $from, $to);
 			}
 
 			return $this->end();
@@ -395,7 +406,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			}
 
 			return $this->begin()
-				->run('git commit', $params, array(
+				->run(self::$git.' commit', $params, array(
 					'-m' => $message,
 				))
 				->end();
@@ -410,7 +421,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		public function getLastCommitId() : ?string
 		{
 			$this->begin();
-			$lastLine = exec('git log --pretty=format:"%H" -n 1 2>&1');
+			$lastLine = exec(self::$git.' log --pretty=format:"%H" -n 1 2>&1');
 			$this->end();
 			if (preg_match('/^[0-9a-f]{40}$/i', $lastLine)) {
 				return $lastLine;
@@ -429,10 +440,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		{
 			// Make sure the `git status` gets a refreshed look at the working tree.
 			$this->begin()
-				->run('git update-index -q --refresh')
+				->run(self::$git.' update-index -q --refresh')
 				->end();
 
-			$output = $this->extractFromCommand('git status --porcelain');
+			$output = $this->extractFromCommand(self::$git.' status --porcelain');
 			return !empty($output);
 		}
 
@@ -453,7 +464,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			}
 
 			return $this->begin()
-				->run('git pull '.$remote, $params)
+				->run(self::$git.' pull '.$remote, $params)
 				->end();
 		}
 
@@ -474,7 +485,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			}
 
 			return $this->begin()
-				->run('git push '.$remote, $params)
+				->run(self::$git.' push '.$remote, $params)
 				->end();
 		}
 
@@ -495,7 +506,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			}
 
 			return $this->begin()
-				->run('git fetch '.$remote, $params)
+				->run(self::$git.' fetch '.$remote, $params)
 				->end();
 		}
 
@@ -512,7 +523,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		public function addRemote(string $name, string $url, ?array $params = null) : self
 		{
 			return $this->begin()
-				->run('git remote add', $params, $name, $url)
+				->run(self::$git.' remote add', $params, $name, $url)
 				->end();
 		}
 
@@ -528,7 +539,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		public function renameRemote(string $oldName, string $newName) : self
 		{
 			return $this->begin()
-				->run('git remote rename', $oldName, $newName)
+				->run(self::$git.' remote rename', $oldName, $newName)
 				->end();
 		}
 
@@ -543,7 +554,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		public function removeRemote(string $name) : self
 		{
 			return $this->begin()
-				->run('git remote remove', $name)
+				->run(self::$git.' remote remove', $name)
 				->end();
 		}
 
@@ -560,7 +571,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		public function setRemoteUrl(string $name, string $url, ?array $params = null) : self
 		{
 			return $this->begin()
-				->run('git remote set-url', $params, $name, $url)
+				->run(self::$git.' remote set-url', $params, $name, $url)
 				->end();
 		}
 
@@ -752,7 +763,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			$cwd = getcwd();
 			chdir($directory);
 			exec(self::processCommand(array(
-				'git init',
+				self::$git.' init',
 				$params,
 				$directory,
 			)), $output, $returnCode);
@@ -809,7 +820,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 			$pipes = [];
 			$command = self::processCommand(array(
-				'git clone',
+				self::$git.' clone',
 				$params,
 				$url,
 				$directory
@@ -937,7 +948,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		public function getCommitMessage(string $commit, bool $oneline = false) : string
 		{
 			$this->begin();
-			exec('git log -1 --format=' . ($oneline ? '%s' : '%B') . ' ' . $commit . ' 2>&1', $message);
+			exec(self::$git.' log -1 --format=' . ($oneline ? '%s' : '%B') . ' ' . $commit . ' 2>&1', $message);
 			$this->end();
 			return implode(PHP_EOL, $message);
 		}
@@ -956,7 +967,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			$subject = $this->getCommitMessage($commit, true);
 
 			$this->begin();
-			exec('git show --raw ' . $commit . ' 2>&1', $output);
+			exec(self::$git.' show --raw ' . $commit . ' 2>&1', $output);
 			$this->end();
 			$data = array(
 				'commit' => $commit,
