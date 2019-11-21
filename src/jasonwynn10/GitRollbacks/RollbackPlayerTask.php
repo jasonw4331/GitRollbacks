@@ -5,17 +5,24 @@ namespace jasonwynn10\GitRollbacks;
 use pocketmine\scheduler\AsyncTask;
 use pocketmine\Server;
 
-class RollbackTask extends AsyncTask {
-
+class RollbackPlayerTask extends AsyncTask {
 	/** @var string */
-	private $commitHash, $gitFolder, $levelName;
+	private $commitHash, $gitFolder, $playerName;
 	/** @var bool */
 	private $force;
 
-	public function __construct(string $gitFolder, string $levelName, string $commitHash, bool $force) {
+	/**
+	 * RollbackPlayerTask constructor.
+	 *
+	 * @param string $gitFolder
+	 * @param string $playerName
+	 * @param string $commitHash
+	 * @param bool $force
+	 */
+	public function __construct(string $gitFolder, string $playerName, string $commitHash, bool $force) {
 		$this->gitFolder = $gitFolder;
 		$this->commitHash = $commitHash;
-		$this->levelName = $levelName;
+		$this->playerName = $playerName;
 		$this->force = $force;
 	}
 
@@ -27,7 +34,8 @@ class RollbackTask extends AsyncTask {
 	 */
 	public function onRun() {
 		$git = new GitRepository($this->gitFolder);
-		$git->checkout($this->commitHash);
+		//$git->checkout($this->commitHash); don't rollback all player files
+		$git->checkoutFile($this->commitHash, strtolower($this->playerName).".dat");
 		$count = 1;
 		foreach($git->getBranches() ?? [] as $branch) {
 			if($branch === "master")
@@ -36,10 +44,6 @@ class RollbackTask extends AsyncTask {
 			$count += (int)$count;
 		}
 		$git->createBranch("Rollback".$count, true);
-		$level = Server::getInstance()->getLevelByName($this->levelName);
-		$return = Server::getInstance()->unloadLevel($level, $this->force); // force unload for rollback of default world
-		if(!$return)
-			return;
-		Main::recursiveCopyAddGit($this->gitFolder, $level->getProvider()->getPath());
+		Main::recursiveCopyAddGit($this->gitFolder, Server::getInstance()->getDataPath()."players".DIRECTORY_SEPARATOR);
 	}
 }

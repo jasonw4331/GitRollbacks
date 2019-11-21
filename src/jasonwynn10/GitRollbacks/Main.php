@@ -5,7 +5,9 @@ namespace jasonwynn10\GitRollbacks;
 use pocketmine\event\level\LevelLoadEvent;
 use pocketmine\event\level\LevelSaveEvent;
 use pocketmine\event\Listener;
+use pocketmine\IPlayer;
 use pocketmine\level\Level;
+use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 
@@ -31,8 +33,7 @@ class Main extends PluginBase implements Listener {
 			if (( $file != '.' ) && ( $file != '..' )) {
 				if ( is_dir($source . '/' . $file) ) {
 					self::recursiveCopyAddGit($source . '/' . $file, $destination . '/' . $file);
-				}
-				else {
+				}else {
 					copy($source . '/' . $file, $destination . '/' . $file);
 					if($git !== null)
 						$git->addFiles([$destination.DIRECTORY_SEPARATOR.$file]);
@@ -50,11 +51,14 @@ class Main extends PluginBase implements Listener {
 	 * @return bool
 	 * @throws GitException
 	 */
-	public function rollbackFromTimestamp(\DateTime $timestamp, Level $level, bool $force = false) : bool {
-		$git = new GitRepository($this->getDataFolder().$level->getFolderName());
+	public function rollbackLevelFromTimestamp(\DateTime $timestamp, Level $level, bool $force = false) : bool {
+		$return = $this->getServer()->unloadLevel($level, $force); // force unload for rollback of default world
+		if(!$return)
+			return false;
+		$git = new GitRepository($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName());
 		$commit = $this->findCommitByTimestamp($timestamp, $git);
 		if($this->getConfig()->get("use-async", true)) {
-			$this->getServer()->getAsyncPool()->submitTask(new RollbackTask($this->getDataFolder().$level->getFolderName(), $level->getFolderName(), $commit, $force));
+			$this->getServer()->getAsyncPool()->submitTask(new RollbackLevelTask($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $level->getFolderName(), $commit, $force));
 			return true;
 		}
 		$git->checkout($commit);
@@ -66,10 +70,49 @@ class Main extends PluginBase implements Listener {
 			$count += (int)$count;
 		}
 		$git->createBranch("Rollback".$count, true);
-		$return = $this->getServer()->unloadLevel($level, $force); // force unload for rollback of default world
-		if(!$return)
-			return false;
-		self::recursiveCopyAddGit($this->getDataFolder().$level->getFolderName(), $level->getProvider()->getPath());
+		if(!$return) {
+			$ret = false;
+		}else{
+			self::recursiveCopyAddGit($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $level->getProvider()->getPath());
+			$ret = true;
+		}
+		return $ret;
+	}
+
+	/**
+	 * @param \DateTime $timestamp
+	 * @param IPlayer $player
+	 * @param bool $force
+	 *
+	 * @return bool
+	 * @throws GitException
+	 */
+	public function rollbackPlayerFromTimestamp(\DateTime $timestamp, IPlayer $player, bool $force = false) : bool {
+		if($player instanceof Player) {
+			$return = $player->kick("Your user information is being rolled back", false);
+			if(!$return and $force) {
+				$player->close($player->getLeaveMessage(), "Your user information is being rolled back");
+			}elseif(!$return){
+				return false;
+			}
+		}
+		$git = new GitRepository($this->getDataFolder()."players");
+		$commit = $this->findCommitByTimestamp($timestamp, $git);
+		//$git->checkout($commit); don't rollback all player files
+		if($this->getConfig()->get("use-async", true)) {
+			$this->getServer()->getAsyncPool()->submitTask(new RollbackPlayerTask($this->getDataFolder()."players", $player->getName(), $commit, $force));
+			return true;
+		}
+		$git->checkoutFile($commit, strtolower($player->getName()).".dat");
+		$count = 1;
+		foreach($git->getBranches() ?? [] as $branch) {
+			if($branch === "master")
+				continue;
+			$count = substr($branch,"9");
+			$count += (int)$count;
+		}
+		$git->createBranch("Rollback".$count, true);
+		self::recursiveCopyAddGit($this->getDataFolder()."players", $this->getServer()->getDataPath()."players".DIRECTORY_SEPARATOR);
 		return true;
 	}
 
@@ -81,8 +124,11 @@ class Main extends PluginBase implements Listener {
 	 * @return bool
 	 * @throws GitException
 	 */
-	public function rollbackFromCommit(string $commit, Level $level, bool $force = false) : bool {
-		$git = new GitRepository($this->getDataFolder().$level->getFolderName());
+	public function rollbackLevelFromCommit(string $commit, Level $level, bool $force = false) : bool {
+		$return = $this->getServer()->unloadLevel($level, $force); // force unload for rollback of default world
+		if(!$return)
+			return false;
+		$git = new GitRepository($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName());
 		$git->checkout($commit);
 		$count = 1;
 		foreach($git->getBranches() ?? [] as $branch) {
@@ -92,13 +138,46 @@ class Main extends PluginBase implements Listener {
 			$count += (int)$count;
 		}
 		$git->createBranch("Rollback".$count, true);
-		$return = $this->getServer()->unloadLevel($level, $force); // force unload for rollback of default world
-		if(!$return)
-			return false;
 		if($this->getConfig()->get("use-async", true)) {
-			$this->getServer()->getAsyncPool()->submitTask(new RollbackTask($this->getDataFolder().$level->getFolderName(), $level->getFolderName(), $commit, $force));
+			$this->getServer()->getAsyncPool()->submitTask(new RollbackLevelTask($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $level->getFolderName(), $commit, $force));
 		}
-		self::recursiveCopyAddGit($this->getDataFolder().$level->getFolderName(), $level->getProvider()->getPath());
+		self::recursiveCopyAddGit($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $level->getProvider()->getPath());
+		return true;
+	}
+
+	/**
+	 * @param string $commit
+	 * @param IPlayer $player
+	 * @param bool $force
+	 *
+	 * @return bool
+	 * @throws GitException
+	 */
+	public function rollbackPlayerFromCommit(string $commit, IPlayer $player, bool $force = false) : bool {
+		if($player instanceof Player) {
+			$return = $player->kick("Your user information is being rolled back", false);
+			if(!$return and $force) {
+				$player->close($player->getLeaveMessage(), "Your user information is being rolled back");
+			}elseif(!$return) {
+				return false;
+			}
+		}
+		$git = new GitRepository($this->getDataFolder()."players");
+		//$git->checkout($commit); don't rollback all player files
+		if($this->getConfig()->get("use-async", true)) {
+			$this->getServer()->getAsyncPool()->submitTask(new RollbackPlayerTask($this->getDataFolder()."players", $player->getName(), $commit, $force));
+			return true;
+		}
+		$git->checkoutFile($commit, strtolower($player->getName()).".dat");
+		$count = 1;
+		foreach($git->getBranches() ?? [] as $branch) {
+			if($branch === "master")
+				continue;
+			$count = substr($branch,"9");
+			$count += (int)$count;
+		}
+		$git->createBranch("Rollback".$count, true);
+		self::recursiveCopyAddGit($this->getDataFolder()."players", $this->getServer()->getDataPath()."players".DIRECTORY_SEPARATOR);
 		return true;
 	}
 
@@ -108,8 +187,19 @@ class Main extends PluginBase implements Listener {
 	 * @return string
 	 * @throws GitException
 	 */
-	public function getLastCommit(Level $level) : string {
-		$git = new GitRepository($this->getDataFolder().$level->getFolderName());
+	public function getLastLevelCommit(Level $level) : string {
+		$git = new GitRepository($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName());
+		return $git->getLastCommitId();
+	}
+
+	/**
+	 * @param IPlayer|null $player
+	 *
+	 * @return string
+	 * @throws GitException
+	 */
+	public function getLastPlayerCommit(?IPlayer $player = null) : string {
+		$git = new GitRepository($this->getDataFolder()."players"); // TODO find last commit that involves specific file
 		return $git->getLastCommitId();
 	}
 
@@ -136,14 +226,14 @@ class Main extends PluginBase implements Listener {
 		$level = $event->getLevel();
 		try{
 			$initialCommit = true;
-			GitRepository::init($this->getDataFolder().$level->getFolderName());
+			GitRepository::init($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName());
 		}catch(GitException $e) {
 			$initialCommit = false;
 		}
 
-		$git = new GitRepository($this->getDataFolder().$level->getFolderName());
+		$git = new GitRepository($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName());
 
-		self::recursiveCopyAddGit($level->getProvider()->getPath(), $this->getDataFolder().$level->getFolderName(), $git);
+		self::recursiveCopyAddGit($level->getProvider()->getPath(), $this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $git);
 
 		if($initialCommit) {
 			$git->addAllChanges();
@@ -157,7 +247,7 @@ class Main extends PluginBase implements Listener {
 	 * @throws \Exception
 	 */
 	public function onWorldSave(LevelSaveEvent $event) : void {
-		$gitFolder = $this->getDataFolder().$event->getLevel()->getFolderName();
+		$gitFolder = $this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$event->getLevel()->getFolderName();
 		$worldFolder = $event->getLevel()->getProvider()->getPath();
 		$levelName = $event->getLevel()->getFolderName();
 		$timestamp = (new \DateTime())->format('Y-m-d H:i:s');
