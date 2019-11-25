@@ -42,8 +42,11 @@ class GitInstallTask extends AsyncTask {
 			GitRepository::setGitInstallation(realpath($this->installPath.DIRECTORY_SEPARATOR."git".DIRECTORY_SEPARATOR."cmd".DIRECTORY_SEPARATOR."git.exe"));
 		}elseif(Utils::getOS() == "linux") {
 			try{
-				exec("apt-get install git", $output, $ret); // TODO: linux install
+				exec("apt-get install git", $output, $ret);
 				var_dump($output, $ret);
+				if($ret !== 0) {
+					// TODO: download source and compile manually
+				}
 			}catch(\Exception $e){}
 		}elseif(Utils::getOS() == "mac") {
 			// TODO: mac install
