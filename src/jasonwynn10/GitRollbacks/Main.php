@@ -214,6 +214,14 @@ class Main extends PluginBase implements Listener {
 				}
 			break;
 			case "mac": // TODO: is mac different?
+				$ret = 0;
+				$cmd = 'git help -g';
+				try{
+					exec($cmd . ' 2>&1', $output, $ret);
+					// TODO: detect local installation
+				}finally{
+					return $ret == 0;
+				}
 			break;
 			default:
 				throw new PluginException("The OS of this device does not support git installation.");
