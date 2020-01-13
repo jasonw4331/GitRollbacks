@@ -7,11 +7,11 @@ use pocketmine\scheduler\AsyncTask;
 class GitCommitTask extends AsyncTask {
 
 	/** @var string */
-	private $worldFolder, $timestamp, $gitFolder, $levelName;
+	private $copyFolder, $timestamp, $gitFolder, $levelName;
 
 	public function __construct(string $gitFolder, string $worldFolder, string $timestamp, string $levelName) {
 		$this->gitFolder = $gitFolder;
-		$this->worldFolder = $worldFolder;
+		$this->copyFolder = $worldFolder;
 		$this->timestamp = $timestamp;
 		$this->levelName = $levelName;
 	}
@@ -24,7 +24,7 @@ class GitCommitTask extends AsyncTask {
 	 */
 	public function onRun() {
 		$git = new GitRepository($this->gitFolder);
-		Main::recursiveCopyAddGit($this->worldFolder, $this->gitFolder, $git);
+		Main::recursiveCopyAddGit($this->copyFolder, $this->gitFolder, $git);
 		$git->addAllChanges();
 		$git->commit($this->levelName." ".$this->timestamp);
 	}
