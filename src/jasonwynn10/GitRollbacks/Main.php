@@ -195,7 +195,11 @@ class Main extends PluginBase implements Listener {
 				$cmd = 'git help -g';
 				try{
 					exec($cmd . ' 2>&1', $output, $ret);
-					var_dump($output);
+					if(file_exists($this->getDataFolder()."git".DIRECTORY_SEPARATOR."cmd".DIRECTORY_SEPARATOR."git.exe")) {
+						exec("set PATH=%PATH%;".$this->getDataFolder()."git".DIRECTORY_SEPARATOR."cmd");
+						//GitRepository::setGitInstallation($this->getDataFolder()."git".DIRECTORY_SEPARATOR."cmd".DIRECTORY_SEPARATOR."git.exe");
+						exec($cmd . ' 2>&1', $output, $ret);
+					}
 				}finally{
 					return $ret == 0;
 				}
