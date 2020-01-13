@@ -51,10 +51,10 @@ class Main extends PluginBase implements Listener {
 	 * @throws GitException
 	 */
 	public function rollbackFromTimestamp(\DateTime $timestamp, Level $level, bool $force = false) : bool {
-		$git = new GitRepository($this->getDataFolder().$level->getFolderName());
+		$git = new GitRepository($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName());
 		$commit = $this->findCommitByTimestamp($timestamp, $git);
 		if($this->getConfig()->get("use-async", true)) {
-			$this->getServer()->getAsyncPool()->submitTask(new RollbackTask($this->getDataFolder().$level->getFolderName(), $level->getFolderName(), $commit, $force));
+			$this->getServer()->getAsyncPool()->submitTask(new RollbackTask($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $level->getFolderName(), $commit, $force));
 			return true;
 		}
 		$git->checkout($commit);
@@ -69,7 +69,7 @@ class Main extends PluginBase implements Listener {
 		$return = $this->getServer()->unloadLevel($level, $force); // force unload for rollback of default world
 		if(!$return)
 			return false;
-		self::recursiveCopyAddGit($this->getDataFolder().$level->getFolderName(), $level->getProvider()->getPath());
+		self::recursiveCopyAddGit($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $level->getProvider()->getPath());
 		return true;
 	}
 
@@ -82,7 +82,7 @@ class Main extends PluginBase implements Listener {
 	 * @throws GitException
 	 */
 	public function rollbackFromCommit(string $commit, Level $level, bool $force = false) : bool {
-		$git = new GitRepository($this->getDataFolder().$level->getFolderName());
+		$git = new GitRepository($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName());
 		$git->checkout($commit);
 		$count = 1;
 		foreach($git->getBranches() ?? [] as $branch) {
@@ -96,9 +96,9 @@ class Main extends PluginBase implements Listener {
 		if(!$return)
 			return false;
 		if($this->getConfig()->get("use-async", true)) {
-			$this->getServer()->getAsyncPool()->submitTask(new RollbackTask($this->getDataFolder().$level->getFolderName(), $level->getFolderName(), $commit, $force));
+			$this->getServer()->getAsyncPool()->submitTask(new RollbackTask($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $level->getFolderName(), $commit, $force));
 		}
-		self::recursiveCopyAddGit($this->getDataFolder().$level->getFolderName(), $level->getProvider()->getPath());
+		self::recursiveCopyAddGit($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $level->getProvider()->getPath());
 		return true;
 	}
 
@@ -109,7 +109,7 @@ class Main extends PluginBase implements Listener {
 	 * @throws GitException
 	 */
 	public function getLastCommit(Level $level) : string {
-		$git = new GitRepository($this->getDataFolder().$level->getFolderName());
+		$git = new GitRepository($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName());
 		return $git->getLastCommitId();
 	}
 
@@ -136,14 +136,14 @@ class Main extends PluginBase implements Listener {
 		$level = $event->getLevel();
 		try{
 			$initialCommit = true;
-			GitRepository::init($this->getDataFolder().$level->getFolderName());
+			GitRepository::init($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName());
 		}catch(GitException $e) {
 			$initialCommit = false;
 		}
 
-		$git = new GitRepository($this->getDataFolder().$level->getFolderName());
+		$git = new GitRepository($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName());
 
-		self::recursiveCopyAddGit($level->getProvider()->getPath(), $this->getDataFolder().$level->getFolderName(), $git);
+		self::recursiveCopyAddGit($level->getProvider()->getPath(), $this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $git);
 
 		if($initialCommit) {
 			$git->addAllChanges();
