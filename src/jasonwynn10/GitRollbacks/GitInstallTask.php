@@ -35,8 +35,15 @@ class GitInstallTask extends AsyncTask {
 				file_put_contents($this->installPath."PortableGit.zip", $handle = fopen("https://github.com/git-for-windows/git/releases/download/v2.24.0.windows.2/MinGit-2.24.0.2-64-bit.zip", "r"));
 				fclose($handle);
 			}
-			exec("set PATH=%PATH%;".realpath($this->installPath.DIRECTORY_SEPARATOR."git".DIRECTORY_SEPARATOR."cmd"));
-			GitRepository::setGitInstallation(realpath($this->installPath.DIRECTORY_SEPARATOR."git".DIRECTORY_SEPARATOR."cmd".DIRECTORY_SEPARATOR."git.exe"));
+			if(!file_exists($this->installPath.DIRECTORY_SEPARATOR."git")) {
+				$archive = new \ZipArchive();
+				if($archive->open($this->installPath."PortableGit.zip")) {
+					$archive->extractTo($this->installPath.DIRECTORY_SEPARATOR."git");
+					$archive->close();
+				}
+			}
+			exec("set PATH=%PATH%;".$this->installPath.DIRECTORY_SEPARATOR."git".DIRECTORY_SEPARATOR."cmd");
+			//GitRepository::setGitInstallation($this->installPath.DIRECTORY_SEPARATOR."git".DIRECTORY_SEPARATOR."cmd".DIRECTORY_SEPARATOR."git.exe");
 		}elseif(Utils::getOS() == "linux") {
 			try{
 				exec("apt-get install git", $output, $ret);
