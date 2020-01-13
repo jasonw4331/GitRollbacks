@@ -5,6 +5,7 @@ namespace jasonwynn10\GitRollbacks;
 use pocketmine\event\level\LevelLoadEvent;
 use pocketmine\event\level\LevelSaveEvent;
 use pocketmine\event\Listener;
+use pocketmine\event\player\PlayerDataSaveEvent;
 use pocketmine\IPlayer;
 use pocketmine\level\Level;
 use pocketmine\Player;
@@ -259,5 +260,20 @@ class Main extends PluginBase implements Listener {
 		Main::recursiveCopyAddGit($worldFolder, $gitFolder, $git);
 		$git->addAllChanges();
 		$git->commit($levelName." ".$timestamp);
+	}
+
+	public function onPlayerSave(PlayerDataSaveEvent $event) {
+		$gitFolder = $this->getDataFolder()."players";
+		$playerFile = $this->getServer()->getDataPath()."players".DIRECTORY_SEPARATOR.$event->getPlayerName().".dat";
+		$playerName = $event->getPlayerName();
+		$timestamp = (new \DateTime())->format('Y-m-d H:i:s');
+		if($this->getConfig()->get("use-async", true)) {
+			$this->getServer()->getAsyncPool()->submitTask(new GitCommitTask($gitFolder, $playerFile, $timestamp, $playerName));
+			return;
+		}
+		$git = new GitRepository($gitFolder);
+		Main::recursiveCopyAddGit($playerFile, $gitFolder, $git);
+		$git->addAllChanges();
+		$git->commit($playerName." ".$timestamp);
 	}
 }
