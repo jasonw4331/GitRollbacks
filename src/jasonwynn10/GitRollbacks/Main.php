@@ -190,6 +190,15 @@ class Main extends PluginBase implements Listener {
 	private function testGit() : bool {
 		switch(Utils::getOS()) {
 			case "linux":
+				$ret = 0;
+				$cmd = 'git help -g';
+				try{
+					exec($cmd . ' 2>&1', $output, $ret);
+					// TODO: detect local installation
+				}finally{
+					return $ret == 0;
+				}
+			break;
 			case "win":
 				$ret = 0;
 				$cmd = 'git help -g';
