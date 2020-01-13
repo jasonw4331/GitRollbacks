@@ -189,7 +189,7 @@ class Main extends PluginBase implements Listener {
 	 */
 	private function testGit() : bool {
 		switch(Utils::getOS()) {
-			/** @noinspection PhpMissingBreakStatementInspection */
+			case "linux":
 			case "win":
 				$ret = 0;
 				$cmd = 'git help -g';
@@ -197,17 +197,7 @@ class Main extends PluginBase implements Listener {
 					exec($cmd . ' 2>&1', $output, $ret);
 					var_dump($output);
 				}finally{
-					return ($ret !== 0);
-				}
-			break;
-			case "linux":
-				$ret = 0;
-				$cmd = 'git help -g';
-				try{
-					exec($cmd . ' 2>&1', $output, $ret);
-					var_dump($output);
-				}finally{
-					return $ret !== 0;
+					return $ret == 0;
 				}
 			break;
 			case "mac": // TODO: is mac different?
