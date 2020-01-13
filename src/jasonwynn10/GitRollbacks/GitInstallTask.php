@@ -58,13 +58,13 @@ class GitInstallTask extends AsyncTask {
 	}
 
 	public function onCompletion(Server $server) {
+		$server->getLogger()->notice("Git has Finished installing");
 		if(\Phar::running(true) !== "") {
 			$plugin = $server->getPluginManager()->loadPlugin(\Phar::running(true));
 		}else{
-			$plugin = $server->getPluginManager()->loadPlugin(dirname(__FILE__, 2));
+			$plugin = $server->getPluginManager()->loadPlugin(dirname(__FILE__, 4));
 		}
 		if($plugin instanceof Plugin)
 			$server->getPluginManager()->enablePlugin($plugin);
-		$server->getLogger()->notice("Git has Finished installing.");
 	}
 }
