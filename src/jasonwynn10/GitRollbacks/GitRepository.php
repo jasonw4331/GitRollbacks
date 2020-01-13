@@ -36,7 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	class GitRepository
 	{
 		/** @var string $git */
-		private static $git;
+		private static $git = "git";
 		/** @var string $repository */
 		protected $repository;
 
