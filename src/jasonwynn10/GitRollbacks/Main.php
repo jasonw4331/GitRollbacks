@@ -17,7 +17,7 @@ class Main extends PluginBase implements Listener {
 		if(!in_array(Utils::getOS(), ["win", "linux", "mac"])) {
 			throw new PluginException("GitRollbacks is currently designed to function on Windows and Linux based devices. Your device is not compatible."); // TODO: BSD support
 		}
-		if(!$this->testGit()) {
+		if(!$this->isGitInstalled()) {
 			Server::getInstance()->getAsyncPool()->submitTask(new GitInstallTask($this->getDataFolder()));
 			throw new PluginException("Git is not installed. Plugin startup will be delayed until the installation is completed.");
 		}
@@ -187,7 +187,7 @@ class Main extends PluginBase implements Listener {
 	/**
 	 * @return bool
 	 */
-	private function testGit() : bool {
+	private function isGitInstalled() : bool {
 		switch(Utils::getOS()) {
 			case "linux":
 				$ret = 0;
