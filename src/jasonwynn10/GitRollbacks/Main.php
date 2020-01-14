@@ -277,7 +277,7 @@ class Main extends PluginBase implements Listener {
 	 */
 	public function onPlayerSave(PlayerDataSaveEvent $event) {
 		$gitFolder = $this->getDataFolder()."players";
-		$playerFile = $this->getServer()->getDataPath()."players".DIRECTORY_SEPARATOR.$event->getPlayerName().".dat";
+		$playerFile = $this->getServer()->getDataPath()."players".DIRECTORY_SEPARATOR.strtolower($event->getPlayerName()).".dat";
 		$playerName = $event->getPlayerName();
 		$timestamp = (new \DateTime())->format('Y-m-d H:i:s');
 		if($this->getConfig()->get("use-async", true)) {
