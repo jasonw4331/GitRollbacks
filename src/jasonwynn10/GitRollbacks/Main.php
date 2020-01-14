@@ -170,7 +170,6 @@ class Main extends PluginBase implements Listener {
 			}
 		}
 		$git = new GitRepository($this->getDataFolder()."players");
-		//$git->checkout($commit); don't rollback all player files
 		if($this->getConfig()->get("use-async", true)) {
 			$this->getServer()->getAsyncPool()->submitTask(new RollbackPlayerTask($this->getDataFolder()."players", $player->getName(), $commit, $force));
 			return true;
@@ -220,8 +219,7 @@ class Main extends PluginBase implements Listener {
 	public static function findCommitByTimestamp(\DateTime $timestamp, GitRepository $git) : string {
 		$timestamp = $timestamp->format('Y-m-d H:i:s');
 		$output = $git->execute(['log', '--grep='.$timestamp]);
-		$commitHash = substr($output[0], strlen("commit "));
-		return $commitHash;
+		return substr($output[0], strlen("commit "));
 	}
 
 	/**

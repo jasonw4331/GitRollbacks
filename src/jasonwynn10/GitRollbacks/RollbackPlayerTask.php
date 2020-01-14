@@ -34,7 +34,6 @@ class RollbackPlayerTask extends AsyncTask {
 	 */
 	public function onRun() {
 		$git = new GitRepository($this->gitFolder);
-		//$git->checkout($this->commitHash); don't rollback all player files
 		$git->checkoutFile($this->commitHash, strtolower($this->playerName).".dat");
 		$count = 1;
 		foreach($git->getBranches() ?? [] as $branch) {
