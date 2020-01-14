@@ -699,6 +699,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			$args = func_get_args();
 			$cmd = self::processCommand($args);
 			exec($cmd . ' 2>&1', $output, $ret);
+			var_dump($output);
 
 			if($ret !== 0)
 			{

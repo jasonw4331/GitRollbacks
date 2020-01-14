@@ -28,20 +28,26 @@ class Main extends PluginBase implements Listener {
 	 * @throws GitException
 	 */
 	public static function recursiveCopyAddGit(string $source, string $destination, GitRepository $git = null) : void {
-		$dir = opendir($source);
-		@mkdir($destination);
-		while(false !== ( $file = readdir($dir)) ) {
-			if (( $file != '.' ) && ( $file != '..' )) {
-				if ( is_dir($source . '/' . $file) ) {
-					self::recursiveCopyAddGit($source . '/' . $file, $destination . '/' . $file);
-				}else {
-					copy($source . '/' . $file, $destination . '/' . $file);
-					if($git !== null)
-						$git->addFiles([$destination.DIRECTORY_SEPARATOR.$file]);
+		if(is_dir($source)) {
+			$dir = opendir($source);
+			@mkdir($destination);
+			while(false !== ( $file = readdir($dir)) ) {
+				if (( $file != '.' ) && ( $file != '..' )) {
+					if ( is_dir($source . '/' . $file) ) {
+						self::recursiveCopyAddGit($source . '/' . $file, $destination . '/' . $file);
+					}else {
+						copy($source . '/' . $file, $destination . '/' . $file);
+						if($git !== null)
+							$git->addFiles([$destination.DIRECTORY_SEPARATOR.$file]);
+					}
 				}
 			}
+			closedir($dir);
+		}else{
+			copy(realpath($source), $destination . '/' . basename($source));
+			if($git !== null)
+				$git->addFiles([$destination . '/' . basename($source)]);
 		}
-		closedir($dir);
 	}
 
 	/**
