@@ -5,3 +5,10 @@ api: 3.0.0
 description: ""
 author: "jasonwynn10"
 load: STARTUP
+os:
+- win
+- linux
+- mac
+permissions:
+  rollback:
+    default: op
