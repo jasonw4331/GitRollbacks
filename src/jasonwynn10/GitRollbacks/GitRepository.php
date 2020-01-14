@@ -345,7 +345,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 					throw new GitException("The path at '$item' does not represent a valid file.");
 				}
 
-				$this->run('git add', $item);
+				$this->run('git add -f', $item);
 			}
 
 			return $this->end();
