@@ -251,7 +251,7 @@ class Main extends PluginBase implements Listener {
 	/**
 	 * @param LevelSaveEvent $event
 	 *
-	 * @throws \Exception
+	 * @throws GitException
 	 */
 	public function onWorldSave(LevelSaveEvent $event) : void {
 		$gitFolder = $this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$event->getLevel()->getFolderName();
@@ -266,8 +266,15 @@ class Main extends PluginBase implements Listener {
 		Main::recursiveCopyAddGit($worldFolder, $gitFolder, $git);
 		$git->addAllChanges();
 		$git->commit($levelName." ".$timestamp);
+
+		$this->getLogger()->debug("World Information Committed");
 	}
 
+	/**
+	 * @param PlayerDataSaveEvent $event
+	 *
+	 * @throws GitException
+	 */
 	public function onPlayerSave(PlayerDataSaveEvent $event) {
 		$gitFolder = $this->getDataFolder()."players";
 		$playerFile = $this->getServer()->getDataPath()."players".DIRECTORY_SEPARATOR.$event->getPlayerName().".dat";
@@ -281,5 +288,7 @@ class Main extends PluginBase implements Listener {
 		Main::recursiveCopyAddGit($playerFile, $gitFolder, $git);
 		$git->addAllChanges();
 		$git->commit($playerName." ".$timestamp);
+
+		$this->getLogger()->debug("Player Information Committed");
 	}
 }
