@@ -2,16 +2,16 @@
 declare(strict_types=1);
 namespace jasonwynn10\GitRollbacks;
 
-use pocketmine\scheduler\Task;
+use pocketmine\scheduler\AsyncTask;
 use pocketmine\utils\MainLogger;
 
-class GitCommitTask extends Task {
+class GitCommitAsyncTask extends AsyncTask {
 
 	/** @var string */
 	private $copyPath, $timestamp, $gitFolder, $commitMessage;
 
 	/**
-	 * GitCommitTask constructor.
+	 * GitCommitAsyncTask constructor.
 	 *
 	 * @param string $gitFolder
 	 * @param string $copyPath
@@ -26,11 +26,9 @@ class GitCommitTask extends Task {
 	}
 
 	/**
-	 * @param int $currentTick
-	 *
 	 * @throws GitException
 	 */
-	public function onRun(int $currentTick) {
+	public function onRun() {
 		$git = new GitRepository($this->gitFolder);
 		Main::recursiveCopyAddGit($this->copyPath, $this->gitFolder, $git);
 		$git->addAllChanges();

@@ -259,16 +259,11 @@ class Main extends PluginBase implements Listener {
 		$worldFolder = $event->getLevel()->getProvider()->getPath();
 		$levelName = $event->getLevel()->getFolderName();
 		$timestamp = (new \DateTime())->format('Y-m-d H:i:s');
-		if($this->getConfig()->get("use-async", true)) {
-			$this->getServer()->getAsyncPool()->submitTask(new GitCommitTask($gitFolder, $worldFolder, $timestamp, $levelName));
+		if($this->getConfig()->get("use-async", true) and $this->getServer()->isRunning()) {
+			$this->getServer()->getAsyncPool()->submitTask(new GitCommitAsyncTask($gitFolder, $worldFolder, $timestamp, $levelName));
 			return;
 		}
-		$git = new GitRepository($gitFolder);
-		Main::recursiveCopyAddGit($worldFolder, $gitFolder, $git);
-		$git->addAllChanges();
-		$git->commit($levelName." ".$timestamp);
-
-		$this->getLogger()->debug("World Information Committed");
+		$this->getScheduler()->scheduleTask(new GitCommitTask($gitFolder, $worldFolder, $timestamp, $levelName));
 	}
 
 	/**
@@ -281,15 +276,10 @@ class Main extends PluginBase implements Listener {
 		$playerFile = $this->getServer()->getDataPath()."players".DIRECTORY_SEPARATOR.strtolower($event->getPlayerName()).".dat";
 		$playerName = $event->getPlayerName();
 		$timestamp = (new \DateTime())->format('Y-m-d H:i:s');
-		if($this->getConfig()->get("use-async", true)) {
-			$this->getServer()->getAsyncPool()->submitTask(new GitCommitTask($gitFolder, $playerFile, $timestamp, $playerName));
+		if($this->getConfig()->get("use-async", true) and $this->getServer()->isRunning()) {
+			$this->getServer()->getAsyncPool()->submitTask(new GitCommitAsyncTask($gitFolder, $playerFile, $timestamp, $playerName));
 			return;
 		}
-		$git = new GitRepository($gitFolder);
-		Main::recursiveCopyAddGit($playerFile, $gitFolder, $git);
-		$git->addAllChanges();
-		$git->commit($playerName." ".$timestamp);
-
-		$this->getLogger()->debug("Player Information Committed");
+		$this->getScheduler()->scheduleTask(new GitCommitTask($gitFolder, $playerFile, $timestamp, $playerName));
 	}
 }
