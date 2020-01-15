@@ -64,7 +64,7 @@ class Main extends PluginBase implements Listener {
 			return false;
 		$git = new GitRepository($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName());
 		$commit = $this->findCommitByTimestamp($timestamp, $git);
-		if($this->getConfig()->get("use-async", true)) {
+		if($this->getConfig()->get("use-async", true) and $this->getServer()->isRunning()) {
 			$this->getServer()->getAsyncPool()->submitTask(new RollbackLevelTask($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $level->getFolderName(), $commit, $force));
 			return true;
 		}
@@ -106,7 +106,7 @@ class Main extends PluginBase implements Listener {
 		$git = new GitRepository($this->getDataFolder()."players");
 		$commit = $this->findCommitByTimestamp($timestamp, $git);
 		//$git->checkout($commit); don't rollback all player files
-		if($this->getConfig()->get("use-async", true)) {
+		if($this->getConfig()->get("use-async", true) and $this->getServer()->isRunning()) {
 			$this->getServer()->getAsyncPool()->submitTask(new RollbackPlayerTask($this->getDataFolder()."players", $player->getName(), $commit, $force));
 			return true;
 		}
@@ -145,7 +145,7 @@ class Main extends PluginBase implements Listener {
 			$count += (int)$count;
 		}
 		$git->createBranch("Rollback".$count, true);
-		if($this->getConfig()->get("use-async", true)) {
+		if($this->getConfig()->get("use-async", true) and $this->getServer()->isRunning()) {
 			$this->getServer()->getAsyncPool()->submitTask(new RollbackLevelTask($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $level->getFolderName(), $commit, $force));
 		}
 		self::recursiveCopyAddGit($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $level->getProvider()->getPath());
@@ -170,7 +170,7 @@ class Main extends PluginBase implements Listener {
 			}
 		}
 		$git = new GitRepository($this->getDataFolder()."players");
-		if($this->getConfig()->get("use-async", true)) {
+		if($this->getConfig()->get("use-async", true) and $this->getServer()->isRunning()) {
 			$this->getServer()->getAsyncPool()->submitTask(new RollbackPlayerTask($this->getDataFolder()."players", $player->getName(), $commit, $force));
 			return true;
 		}
