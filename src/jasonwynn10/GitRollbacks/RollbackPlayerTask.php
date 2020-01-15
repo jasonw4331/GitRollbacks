@@ -7,7 +7,7 @@ use pocketmine\Server;
 
 class RollbackPlayerTask extends AsyncTask {
 	/** @var string */
-	private $commitHash, $gitFolder, $playerName;
+	private $commitHash, $gitFolder, $playerName, $serverPath;
 	/** @var bool */
 	private $force;
 
@@ -24,6 +24,7 @@ class RollbackPlayerTask extends AsyncTask {
 		$this->commitHash = $commitHash;
 		$this->playerName = $playerName;
 		$this->force = $force;
+		$this->serverPath = Server::getInstance()->getDataPath();
 	}
 
 	/**
@@ -43,6 +44,6 @@ class RollbackPlayerTask extends AsyncTask {
 			$count += (int)$count;
 		}
 		$git->createBranch("Rollback".$count, true);
-		Main::recursiveCopyAddGit($this->gitFolder, Server::getInstance()->getDataPath()."players".DIRECTORY_SEPARATOR);
+		Main::recursiveCopyAddGit($this->gitFolder, $this->serverPath."players".DIRECTORY_SEPARATOR);
 	}
 }
