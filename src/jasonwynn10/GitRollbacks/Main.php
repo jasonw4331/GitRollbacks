@@ -6,6 +6,7 @@ use pocketmine\event\level\LevelLoadEvent;
 use pocketmine\event\level\LevelSaveEvent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerDataSaveEvent;
+use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\IPlayer;
 use pocketmine\level\Level;
 use pocketmine\Player;
@@ -266,6 +267,23 @@ class Main extends PluginBase implements Listener {
 			return;
 		}
 		$this->getScheduler()->scheduleTask(new GitCommitTask($gitFolder, $worldFolder, $timestamp, $levelName));
+	}
+
+	/**
+	 * @param PlayerJoinEvent $event
+	 *
+	 * @throws GitException
+	 */
+	public function onPlayerJoin(PlayerJoinEvent $event) {
+		try{
+			GitRepository::init($this->getDataFolder()."players");
+			$git = new GitRepository($this->getDataFolder()."players");
+			self::recursiveCopyAddGit($this->getServer()->getDataPath()."players", $this->getDataFolder()."players", $git);
+			$git->addAllChanges();
+			$git->commit("First Backup");
+		}catch(GitException $e) {
+			// do nothing
+		}
 	}
 
 	/**
