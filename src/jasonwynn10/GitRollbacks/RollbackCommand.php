@@ -17,7 +17,7 @@ class RollbackCommand extends Command {
 	protected $plugin;
 
 	public function __construct(Main $plugin) {
-		parent::__construct("rollback", "trigger a world rollback on the selected world", "/rollback <world|player> <name: string> <commit|timestamp: string>", ["rb"]);
+		parent::__construct("rollback", "trigger a world rollback on the selected world", "/rollback world <world: string> <commit: string> OR /rollback world <world: string> <timestamp: string> OR /rollback player <player: target> <commit: string> OR /rollback player <player: target> <timestamp: string>", ["rb"]);
 		$this->setPermission("rollback");
 		$this->plugin = $plugin;
 	}
