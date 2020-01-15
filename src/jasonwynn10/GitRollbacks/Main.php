@@ -73,7 +73,7 @@ class Main extends PluginBase implements Listener {
 		foreach($git->getBranches() ?? [] as $branch) {
 			if($branch === "master")
 				continue;
-			$count = substr($branch,"9");
+			$count = substr($branch, 8);
 			$count += (int)$count;
 		}
 		$git->createBranch("Rollback".$count, true);
@@ -115,7 +115,7 @@ class Main extends PluginBase implements Listener {
 		foreach($git->getBranches() ?? [] as $branch) {
 			if($branch === "master")
 				continue;
-			$count = substr($branch,"9");
+			$count = substr($branch, 8);
 			$count += (int)$count;
 		}
 		$git->createBranch("Rollback".$count, true);
@@ -141,7 +141,7 @@ class Main extends PluginBase implements Listener {
 		foreach($git->getBranches() ?? [] as $branch) {
 			if($branch === "master")
 				continue;
-			$count = substr($branch, 9);
+			$count = substr($branch, 8);
 			$count += (int)$count;
 		}
 		$git->createBranch("Rollback".$count, true);
@@ -179,7 +179,7 @@ class Main extends PluginBase implements Listener {
 		foreach($git->getBranches() ?? [] as $branch) {
 			if($branch === "master")
 				continue;
-			$count = substr($branch,"9");
+			$count = substr($branch, 8);
 			$count += (int)$count;
 		}
 		$git->createBranch("Rollback".$count, true);
