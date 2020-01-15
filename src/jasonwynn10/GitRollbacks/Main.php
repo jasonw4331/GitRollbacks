@@ -36,6 +36,7 @@ class Main extends PluginBase implements Listener {
 					if ( is_dir($source . '/' . $file) ) {
 						self::recursiveCopyAddGit($source . '/' . $file, $destination . '/' . $file);
 					}else {
+						touch($destination . '/' . $file);
 						copy($source . '/' . $file, $destination . '/' . $file);
 						if($git !== null)
 							$git->addFiles([$destination.DIRECTORY_SEPARATOR.$file]);
@@ -44,6 +45,7 @@ class Main extends PluginBase implements Listener {
 			}
 			closedir($dir);
 		}else{
+			touch($destination . '/' . basename($source));
 			copy(realpath($source), $destination . '/' . basename($source));
 			if($git !== null)
 				$git->addFiles([$destination . '/' . basename($source)]);
