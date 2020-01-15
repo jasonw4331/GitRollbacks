@@ -205,8 +205,11 @@ class Main extends PluginBase implements Listener {
 	 * @throws GitException
 	 */
 	public function getLastPlayerCommit(?IPlayer $player = null) : string {
-		$git = new GitRepository($this->getDataFolder()."players"); // TODO find last commit that involves specific file
-		return $git->getLastCommitId();
+		$git = new GitRepository($this->getDataFolder()."players");
+		if($player instanceof IPlayer) {
+			return $git->getLastFileCommitId(strtolower($player->getName()).".dat") ?? "";
+		}
+		return $git->getLastCommitId() ?? "";
 	}
 
 	/**
