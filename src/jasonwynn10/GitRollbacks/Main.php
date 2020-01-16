@@ -266,8 +266,6 @@ class Main extends PluginBase implements Listener {
 
 	/**
 	 * @param PlayerJoinEvent $event
-	 *
-	 * @throws GitException
 	 */
 	public function onPlayerJoin(PlayerJoinEvent $event) {
 		try{
