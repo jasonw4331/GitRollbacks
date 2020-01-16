@@ -11,12 +11,9 @@ use pocketmine\IPlayer;
 use pocketmine\level\Level;
 use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
-use pocketmine\utils\Config;
 
 class Main extends PluginBase implements Listener {
 	public function onEnable() : void {
-		new Config($this->getDataFolder()."config.yml", Config::YAML, ["use-async" => true]);
-		$this->reloadConfig();
 		$this->getServer()->getPluginManager()->registerEvents($this, $this);
 		$this->getServer()->getCommandMap()->register("rollback", new RollbackCommand($this));
 	}
@@ -67,7 +64,7 @@ class Main extends PluginBase implements Listener {
 			return false;
 		$git = new GitRepository($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName());
 		$commit = $this->findCommitByTimestamp($timestamp, $git);
-		if($this->getConfig()->get("use-async", true) and $this->getServer()->isRunning()) {
+		if($this->getServer()->isRunning()) {
 			$this->getServer()->getAsyncPool()->submitTask(new RollbackLevelTask($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $level->getFolderName(), $commit, $force));
 			return true;
 		}
@@ -109,7 +106,7 @@ class Main extends PluginBase implements Listener {
 		$git = new GitRepository($this->getDataFolder()."players");
 		$commit = $this->findCommitByTimestamp($timestamp, $git);
 		//$git->checkout($commit); don't rollback all player files
-		if($this->getConfig()->get("use-async", true) and $this->getServer()->isRunning()) {
+		if($this->getServer()->isRunning()) {
 			$this->getServer()->getAsyncPool()->submitTask(new RollbackPlayerTask($this->getDataFolder()."players", $player->getName(), $commit, $force));
 			return true;
 		}
@@ -148,7 +145,7 @@ class Main extends PluginBase implements Listener {
 			$count += (int)$count;
 		}
 		$git->createBranch("Rollback".$count, true);
-		if($this->getConfig()->get("use-async", true) and $this->getServer()->isRunning()) {
+		if($this->getServer()->isRunning()) {
 			$this->getServer()->getAsyncPool()->submitTask(new RollbackLevelTask($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $level->getFolderName(), $commit, $force));
 		}
 		self::recursiveCopyAddGit($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $level->getProvider()->getPath());
@@ -173,7 +170,7 @@ class Main extends PluginBase implements Listener {
 			}
 		}
 		$git = new GitRepository($this->getDataFolder()."players");
-		if($this->getConfig()->get("use-async", true) and $this->getServer()->isRunning()) {
+		if($this->getServer()->isRunning()) {
 			$this->getServer()->getAsyncPool()->submitTask(new RollbackPlayerTask($this->getDataFolder()."players", $player->getName(), $commit, $force));
 			return true;
 		}
@@ -262,7 +259,7 @@ class Main extends PluginBase implements Listener {
 		$worldFolder = $event->getLevel()->getProvider()->getPath();
 		$levelName = $event->getLevel()->getFolderName();
 		$timestamp = (new \DateTime())->format('Y-m-d H:i:s');
-		if($this->getConfig()->get("use-async", true) and $this->getServer()->isRunning()) {
+		if($this->getServer()->isRunning()) {
 			$this->getServer()->getAsyncPool()->submitTask(new GitCommitAsyncTask($gitFolder, $worldFolder, $timestamp, $levelName));
 			return;
 		}
@@ -296,7 +293,7 @@ class Main extends PluginBase implements Listener {
 		$playerFile = $this->getServer()->getDataPath()."players".DIRECTORY_SEPARATOR.strtolower($event->getPlayerName()).".dat";
 		$playerName = $event->getPlayerName();
 		$timestamp = (new \DateTime())->format('Y-m-d H:i:s');
-		if($this->getConfig()->get("use-async", true) and $this->getServer()->isRunning()) {
+		if($this->getServer()->isRunning()) {
 			$this->getServer()->getAsyncPool()->submitTask(new GitCommitAsyncTask($gitFolder, $playerFile, $timestamp, $playerName));
 			return;
 		}
