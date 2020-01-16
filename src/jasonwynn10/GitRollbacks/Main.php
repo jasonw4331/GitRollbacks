@@ -251,8 +251,6 @@ class Main extends PluginBase implements Listener {
 
 	/**
 	 * @param LevelSaveEvent $event
-	 *
-	 * @throws GitException
 	 */
 	public function onWorldSave(LevelSaveEvent $event) : void {
 		$gitFolder = $this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$event->getLevel()->getFolderName();
@@ -285,8 +283,6 @@ class Main extends PluginBase implements Listener {
 
 	/**
 	 * @param PlayerDataSaveEvent $event
-	 *
-	 * @throws GitException
 	 */
 	public function onPlayerSave(PlayerDataSaveEvent $event) {
 		$gitFolder = $this->getDataFolder()."players";
