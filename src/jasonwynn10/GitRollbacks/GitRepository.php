@@ -313,6 +313,23 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		}
 
 		/**
+		 * Checkout branch.
+		 * `git checkout <branch> <filePath>`
+		 *
+		 * @param string $name
+		 * @param string $filePath
+		 *
+		 * @return GitRepository
+		 * @throws GitException
+		 */
+		public function checkoutFile(string $name, string $filePath) : self
+		{
+			return $this->begin()
+				->run('git checkout', $name, $filePath)
+				->end();
+		}
+
+		/**
 		 * Removes file(s).
 		 * `git rm <file>`
 		 *
@@ -356,7 +373,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 					throw new GitException("The path at '$item' does not represent a valid file.");
 				}
 
-				$this->run(self::$git.' add', $item);
+				$this->run(self::$git.' add -f', $item);
 			}
 
 			return $this->end();
@@ -433,12 +450,34 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		 * Returns last commit ID on current branch
 		 * `git log --pretty=format:"%H" -n 1`
 		 *
+		 * @param int $n
+		 *
 		 * @return string|null
 		 */
-		public function getLastCommitId() : ?string
+		public function getLastCommitId(int $n = null) : ?string
 		{
 			$this->begin();
-			$lastLine = exec(self::$git.' log --pretty=format:"%H" -n 1 2>&1');
+			$lastLine = exec(self::$git.' log --pretty=format:"%H" -n '.($n ?? 2).' 2>&1');
+			$this->end();
+			if (preg_match('/^[0-9a-f]{40}$/i', $lastLine)) {
+				return $lastLine;
+			}
+			return null;
+		}
+
+		/**
+		 * Returns last commit ID on current branch
+		 * `git log --pretty=format:"%H" -n 1 filename`
+		 *
+		 * @param string $filename
+		 * @param int $n
+		 *
+		 * @return string|null
+		 */
+		public function getLastFileCommitId(string $filename, int $n = null) : ?string
+		{
+			$this->begin();
+			$lastLine = exec(self::$git.' log --pretty=format:"%H" -n '.($n ?? 2).' '.$filename.' 2>&1');
 			$this->end();
 			if (preg_match('/^[0-9a-f]{40}$/i', $lastLine)) {
 				return $lastLine;

@@ -5,7 +5,7 @@ namespace jasonwynn10\GitRollbacks;
 use pocketmine\scheduler\AsyncTask;
 use pocketmine\Server;
 
-class RollbackTask extends AsyncTask {
+class RollbackLevelTask extends AsyncTask {
 
 	/** @var string */
 	private $commitHash, $gitFolder, $levelName;
@@ -32,7 +32,7 @@ class RollbackTask extends AsyncTask {
 		foreach($git->getBranches() ?? [] as $branch) {
 			if($branch === "master")
 				continue;
-			$count = substr($branch,"9");
+			$count = substr($branch, 8);
 			$count += (int)$count;
 		}
 		$git->createBranch("Rollback".$count, true);
