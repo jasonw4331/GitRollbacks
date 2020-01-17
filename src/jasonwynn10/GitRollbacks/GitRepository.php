@@ -313,23 +313,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		}
 
 		/**
-		 * Checkout branch.
-		 * `git checkout <branch> <filePath>`
-		 *
-		 * @param string $name
-		 * @param string $filePath
-		 *
-		 * @return GitRepository
-		 * @throws GitException
-		 */
-		public function checkoutFile(string $name, string $filePath) : self
-		{
-			return $this->begin()
-				->run('git checkout', $name, $filePath)
-				->end();
-		}
-
-		/**
 		 * Removes file(s).
 		 * `git rm <file>`
 		 *
