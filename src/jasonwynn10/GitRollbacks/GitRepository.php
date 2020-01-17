@@ -422,12 +422,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		 * Returns last commit ID on current branch
 		 * `git log --pretty=format:"%H" -n 1`
 		 *
+		 * @param int $n
+		 *
 		 * @return string|null
 		 */
-		public function getLastCommitId() : ?string
+		public function getLastCommitId(int $n = null) : ?string
 		{
 			$this->begin();
-			$lastLine = exec('git log --pretty=format:"%H" -n 2 2>&1');
+			$lastLine = exec('git log --pretty=format:"%H" -n '.($n ?? 2).' 2>&1');
 			$this->end();
 			if (preg_match('/^[0-9a-f]{40}$/i', $lastLine)) {
 				return $lastLine;
@@ -439,14 +441,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		 * Returns last commit ID on current branch
 		 * `git log --pretty=format:"%H" -n 1 filename`
 		 *
-		 * @var string $filename
+		 * @param string $filename
+		 * @param int $n
 		 *
 		 * @return string|null
 		 */
-		public function getLastFileCommitId(string $filename) : ?string
+		public function getLastFileCommitId(string $filename, int $n = null) : ?string
 		{
 			$this->begin();
-			$lastLine = exec('git log --pretty=format:"%H" -n 2 '.$filename.' 2>&1');
+			$lastLine = exec('git log --pretty=format:"%H" -n '.($n ?? 2).' '.$filename.' 2>&1');
 			$this->end();
 			if (preg_match('/^[0-9a-f]{40}$/i', $lastLine)) {
 				return $lastLine;
