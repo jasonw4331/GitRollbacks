@@ -345,7 +345,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 					throw new GitException("The path at '$item' does not represent a valid file.");
 				}
 
-				$this->run('git add', $item);
+				$this->run('git add -f', $item);
 			}
 
 			return $this->end();
@@ -427,7 +427,26 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		public function getLastCommitId() : ?string
 		{
 			$this->begin();
-			$lastLine = exec('git log --pretty=format:"%H" -n 1 2>&1');
+			$lastLine = exec('git log --pretty=format:"%H" -n 2 2>&1');
+			$this->end();
+			if (preg_match('/^[0-9a-f]{40}$/i', $lastLine)) {
+				return $lastLine;
+			}
+			return null;
+		}
+
+		/**
+		 * Returns last commit ID on current branch
+		 * `git log --pretty=format:"%H" -n 1 filename`
+		 *
+		 * @var string $filename
+		 *
+		 * @return string|null
+		 */
+		public function getLastFileCommitId(string $filename) : ?string
+		{
+			$this->begin();
+			$lastLine = exec('git log --pretty=format:"%H" -n 2 '.$filename.' 2>&1');
 			$this->end();
 			if (preg_match('/^[0-9a-f]{40}$/i', $lastLine)) {
 				return $lastLine;
