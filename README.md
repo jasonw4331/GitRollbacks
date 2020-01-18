@@ -4,7 +4,7 @@
 [![Download count](https://poggit.pmmp.io/shield.dl.total/GitRollbacks)](https://poggit.pmmp.io/p/GitRollbacks)
 
 # Intro
-GitRollbacks is a plugin which adds a command to easily rollback the world to a previous save version.
+GitRollbacks is a plugin which adds a command to easily rollback a world or player to a previous save state.
 
 # Features
 * adds the command: /rollback
