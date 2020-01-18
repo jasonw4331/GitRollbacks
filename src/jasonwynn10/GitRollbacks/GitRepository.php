@@ -429,7 +429,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		public function getLastCommitId(int $n = null) : ?string
 		{
 			$this->begin();
-			$lastLine = exec('git log --pretty=format:"%H" -n '.($n ?? 2).' 2>&1');
+			$lastLine = exec('git log --pretty=format:"%H" -n '.($n ?? 1).' 2>&1');
 			$this->end();
 			if (preg_match('/^[0-9a-f]{40}$/i', $lastLine)) {
 				return $lastLine;
@@ -449,7 +449,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		public function getLastFileCommitId(string $filename, int $n = null) : ?string
 		{
 			$this->begin();
-			$lastLine = exec('git log --pretty=format:"%H" -n '.($n ?? 2).' '.$filename.' 2>&1');
+			$lastLine = exec('git log --pretty=format:"%H" -n '.($n ?? 1).' '.$filename.' 2>&1');
 			$this->end();
 			if (preg_match('/^[0-9a-f]{40}$/i', $lastLine)) {
 				return $lastLine;
