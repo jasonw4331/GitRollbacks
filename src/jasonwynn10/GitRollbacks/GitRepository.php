@@ -269,6 +269,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		}
 
 		/**
+		 * Reset branch.
+		 * `git reset --hard <commit>`
+		 *
+		 * @param string $name
+		 *
+		 * @return GitRepository
+		 * @throws GitException
+		 */
+		public function reset(string $name) : self
+		{
+			return $this->begin()
+				->run('git reset --hard', $name)
+				->end();
+		}
+
+		/**
 		 * Checkout branch.
 		 * `git checkout <branch>`
 		 *

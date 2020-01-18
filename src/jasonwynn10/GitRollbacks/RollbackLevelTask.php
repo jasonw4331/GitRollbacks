@@ -27,7 +27,8 @@ class RollbackLevelTask extends AsyncTask {
 	 */
 	public function onRun() {
 		$git = new GitRepository($this->gitFolder);
-		$git->checkout($this->commitHash);
+		//$git->checkout($this->commitHash);
+		$git->reset($this->commitHash);
 		$count = 1;
 		foreach($git->getBranches() ?? [] as $branch) {
 			if($branch === "master")
