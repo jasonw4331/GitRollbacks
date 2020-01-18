@@ -47,7 +47,7 @@ class RollbackCommand extends Command {
 
 			$force = false;
 			if((!isset($args[3]) or $args[3] == false) and $level === $this->plugin->getServer()->getDefaultLevel()) {
-				$sender->sendMessage(TextFormat::RED."Are you sure you want to rollback the default world? If so, do /rollback ".$args[0]." ".$args[1]." ".$args[2]." confirm");
+				$sender->sendMessage(TextFormat::RED."The Default world cannot be rolled back without crashing the server. Please use the force argument to trigger the rollback.");
 				return true;
 			}elseif(isset($args[3])) {
 				$force = true;
