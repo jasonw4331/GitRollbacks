@@ -26,12 +26,11 @@ class RollbackCommand extends Command {
 	 * @param string $commandLabel
 	 * @param string[] $args
 	 *
-	 * @return bool
 	 * @throws InvalidCommandSyntaxException|GitException
 	 */
 	public function execute(CommandSender $sender, string $commandLabel, array $args) {
 		if(!$this->testPermission($sender)){
-			return false;
+			return;
 		}
 
 		if(count($args) < 2) {
@@ -42,13 +41,13 @@ class RollbackCommand extends Command {
 			$level = $this->plugin->getServer()->getLevelByName($args[1]);
 			if(!$level instanceof Level) {
 				$sender->sendMessage(TextFormat::RED."Level not found.");
-				return true;
+				return;
 			}
 
 			$force = false;
 			if((!isset($args[3]) or $args[3] == false) and $level === $this->plugin->getServer()->getDefaultLevel()) {
 				$sender->sendMessage(TextFormat::RED."The Default world cannot be rolled back without crashing the server. Please use the force argument to trigger the rollback.");
-				return true;
+				return;
 			}elseif(isset($args[3])) {
 				$force = true;
 			}
@@ -73,6 +72,6 @@ class RollbackCommand extends Command {
 		}else{
 			throw new InvalidCommandSyntaxException();
 		}
-		return true;
+		return;
 	}
 }
