@@ -280,6 +280,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		}
 
 		/**
+		 * Reset branch.
+		 * `git reset --hard <commit>`
+		 *
+		 * @param string $name
+		 *
+		 * @return GitRepository
+		 * @throws GitException
+		 */
+		public function reset(string $name) : self
+		{
+			return $this->begin()
+				->run('git reset --hard', $name)
+				->end();
+		}
+
+		/**
 		 * Checkout branch.
 		 * `git checkout <branch>`
 		 *
@@ -440,7 +456,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		public function getLastCommitId(int $n = null) : ?string
 		{
 			$this->begin();
-			$lastLine = exec(self::$git.' log --pretty=format:"%H" -n '.($n ?? 2).' 2>&1');
+			$lastLine = exec(self::$git.' log --pretty=format:"%H" -n '.($n ?? 1).' 2>&1');
 			$this->end();
 			if (preg_match('/^[0-9a-f]{40}$/i', $lastLine)) {
 				return $lastLine;
@@ -460,7 +476,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		public function getLastFileCommitId(string $filename, int $n = null) : ?string
 		{
 			$this->begin();
-			$lastLine = exec(self::$git.' log --pretty=format:"%H" -n '.($n ?? 2).' '.$filename.' 2>&1');
+			$lastLine = exec(self::$git.' log --pretty=format:"%H" -n '.($n ?? 1).' '.$filename.' 2>&1');
 			$this->end();
 			if (preg_match('/^[0-9a-f]{40}$/i', $lastLine)) {
 				return $lastLine;

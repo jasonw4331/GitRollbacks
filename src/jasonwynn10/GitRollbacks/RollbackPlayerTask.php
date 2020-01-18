@@ -36,14 +36,6 @@ class RollbackPlayerTask extends AsyncTask {
 	public function onRun() {
 		$git = new GitRepository($this->gitFolder);
 		$git->checkoutFile($this->commitHash, strtolower($this->playerName).".dat");
-		$count = 1;
-		foreach($git->getBranches() ?? [] as $branch) {
-			if($branch === "master")
-				continue;
-			$count = substr($branch, 8);
-			$count += (int)$count;
-		}
-		$git->createBranch("Rollback".$count, true);
 		Main::recursiveCopyAddGit($this->gitFolder, $this->serverPath."players".DIRECTORY_SEPARATOR);
 	}
 }
