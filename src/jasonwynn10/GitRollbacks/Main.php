@@ -59,26 +59,19 @@ class Main extends PluginBase implements Listener {
 	 * @throws GitException
 	 */
 	public function rollbackLevel(int $saveCount, Level $level, bool $force = false) : bool {
-		$return = $this->getServer()->unloadLevel($level, $force); // force unload for rollback of default world
-		if(!$return)
-			return false;
 		$git = new GitRepository($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName());
 		$commit = $git->getLastCommitId($saveCount);
 		if(!is_string($commit)) {
 			return false;
 		}
-		$git->checkout($commit);
-		$count = 1;
-		foreach($git->getBranches() ?? [] as $branch) {
-			if($branch === "master")
-				continue;
-			$count = substr($branch, 8);
-			$count += (int)$count;
-		}
-		$git->createBranch("Rollback".$count, true);
 		if($this->getServer()->isRunning()) {
 			$this->getServer()->getAsyncPool()->submitTask(new RollbackLevelTask($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $level->getFolderName(), $commit, $force));
+			return true;
 		}
+		$return = $this->getServer()->unloadLevel($level, $force); // force unload for rollback of default world
+		if(!$return)
+			return false;
+		$git->reset($commit);
 		self::recursiveCopyAddGit($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $level->getProvider()->getPath());
 		return true;
 	}
