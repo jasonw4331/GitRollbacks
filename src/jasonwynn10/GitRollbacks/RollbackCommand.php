@@ -39,8 +39,7 @@ class RollbackCommand extends Command {
 		}
 
 		if(strtolower($args[0]) === "world") {
-			$levelName = $args[1];
-			$level = $this->plugin->getServer()->getLevelByName($levelName);
+			$level = $this->plugin->getServer()->getLevelByName($args[1]);
 			if($level instanceof Level) {
 				$sender->sendMessage(TextFormat::RED."Level not found.");
 				return true;
@@ -54,7 +53,7 @@ class RollbackCommand extends Command {
 				$force = true;
 			}
 			if($this->plugin->rollbackLevel((int)$args[2], $level, $force)) {
-				$sender->sendMessage(TextFormat::GREEN."Rollback Task for world '".$levelName."' started successfully");
+				$sender->sendMessage(TextFormat::GREEN."Rollback Task for world '".$args[1]."' started successfully");
 			}else{
 				$sender->sendMessage(TextFormat::RED."There was an Error. The requested data could not be rolled back.");
 			}
