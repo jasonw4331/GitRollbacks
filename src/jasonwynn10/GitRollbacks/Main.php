@@ -192,14 +192,13 @@ class Main extends PluginBase implements Listener {
 	 * @return bool
 	 */
 	private function isGitInstalled() : bool {
+		$cmd = 'git help -g';
 		switch(Utils::getOS()) {
 			case "linux":
-				$cmd = 'git help -g';
 				exec($cmd . ' 2>&1', $output, $ret = 0);
 				return $ret == 0;
 			break;
 			case "win":
-				$cmd = 'git help -g';
 				exec($cmd . ' 2>&1', $output, $ret = 0);
 				if(file_exists($this->getDataFolder()."git".DIRECTORY_SEPARATOR."cmd".DIRECTORY_SEPARATOR."git.exe")) {
 					exec("set PATH=%PATH%;".$this->getDataFolder()."git".DIRECTORY_SEPARATOR."cmd");
@@ -209,7 +208,6 @@ class Main extends PluginBase implements Listener {
 				return $ret == 0;
 			break;
 			case "mac": // TODO: is mac different?
-				$cmd = 'git help -g';
 				exec($cmd . ' 2>&1', $output, $ret = 0);
 				return $ret == 0;
 			break;
