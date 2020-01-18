@@ -2,7 +2,7 @@ name: GitRollbacks
 main: jasonwynn10\GitRollbacks\Main
 version: 0.3.0
 api: 3.0.0
-description: ""
+description: "A plugin that allows server data rollbacks using Git"
 author: "jasonwynn10"
 load: STARTUP
 os:
