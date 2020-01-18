@@ -9,7 +9,6 @@ use pocketmine\event\player\PlayerDataSaveEvent;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\IPlayer;
 use pocketmine\level\Level;
-use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 
 class Main extends PluginBase implements Listener {
@@ -21,7 +20,7 @@ class Main extends PluginBase implements Listener {
 	/**
 	 * @param string $source
 	 * @param string $destination
-	 * @param GitRepository|null $git
+	 * @param GitRepository $git
 	 *
 	 * @throws GitException
 	 */
@@ -30,7 +29,7 @@ class Main extends PluginBase implements Listener {
 			$dir = opendir($source);
 			@mkdir($destination);
 			while(false !== ( $file = readdir($dir)) ) {
-				if (( $file != '.' ) && ( $file != '..' )) {
+				if (( $file != '.' ) && ( $file != '..' ) && ( $file != '.git' )) {
 					if ( is_dir($source . '/' . $file) ) {
 						self::recursiveCopyAddGit($source . '/' . $file, $destination . '/' . $file);
 					}else {
@@ -51,178 +50,60 @@ class Main extends PluginBase implements Listener {
 	}
 
 	/**
-	 * @param \DateTime $timestamp
+	 * @param int $saveCount
 	 * @param Level $level
 	 * @param bool $force
 	 *
 	 * @return bool
 	 * @throws GitException
 	 */
-	public function rollbackLevelFromTimestamp(\DateTime $timestamp, Level $level, bool $force = false) : bool {
-		$return = $this->getServer()->unloadLevel($level, $force); // force unload for rollback of default world
-		if(!$return)
-			return false;
+	public function rollbackLevel(int $saveCount, Level $level, bool $force = false) : bool {
 		$git = new GitRepository($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName());
-		$commit = $this->findCommitByTimestamp($timestamp, $git);
+		$commit = $git->getLastCommitId($saveCount);
+		if(!is_string($commit)) {
+			return false;
+		}
 		if($this->getServer()->isRunning()) {
 			$this->getServer()->getAsyncPool()->submitTask(new RollbackLevelTask($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $level->getFolderName(), $commit, $force));
 			return true;
 		}
-		$git->checkout($commit);
-		$count = 1;
-		foreach($git->getBranches() ?? [] as $branch) {
-			if($branch === "master")
-				continue;
-			$count = substr($branch, 8);
-			$count += (int)$count;
-		}
-		$git->createBranch("Rollback".$count, true);
-		if(!$return) {
-			$ret = false;
-		}else{
-			self::recursiveCopyAddGit($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $level->getProvider()->getPath());
-			$ret = true;
-		}
-		return $ret;
-	}
-
-	/**
-	 * @param \DateTime $timestamp
-	 * @param IPlayer $player
-	 * @param bool $force
-	 *
-	 * @return bool
-	 * @throws GitException
-	 */
-	public function rollbackPlayerFromTimestamp(\DateTime $timestamp, IPlayer $player, bool $force = false) : bool {
-		if($player instanceof Player) {
-			$return = $player->kick("Your user information is being rolled back", false);
-			if(!$return and $force) {
-				$player->close($player->getLeaveMessage(), "Your user information is being rolled back");
-			}elseif(!$return){
-				return false;
-			}
-		}
-		$git = new GitRepository($this->getDataFolder()."players");
-		$commit = $this->findCommitByTimestamp($timestamp, $git);
-		//$git->checkout($commit); don't rollback all player files
-		if($this->getServer()->isRunning()) {
-			$this->getServer()->getAsyncPool()->submitTask(new RollbackPlayerTask($this->getDataFolder()."players", $player->getName(), $commit, $force));
-			return true;
-		}
-		$git->checkoutFile($commit, strtolower($player->getName()).".dat");
-		$count = 1;
-		foreach($git->getBranches() ?? [] as $branch) {
-			if($branch === "master")
-				continue;
-			$count = substr($branch, 8);
-			$count += (int)$count;
-		}
-		$git->createBranch("Rollback".$count, true);
-		self::recursiveCopyAddGit($this->getDataFolder()."players", $this->getServer()->getDataPath()."players".DIRECTORY_SEPARATOR);
-		return true;
-	}
-
-	/**
-	 * @param string $commit
-	 * @param Level $level
-	 * @param bool $force
-	 *
-	 * @return bool
-	 * @throws GitException
-	 */
-	public function rollbackLevelFromCommit(string $commit, Level $level, bool $force = false) : bool {
 		$return = $this->getServer()->unloadLevel($level, $force); // force unload for rollback of default world
 		if(!$return)
 			return false;
-		$git = new GitRepository($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName());
-		$git->checkout($commit);
-		$count = 1;
-		foreach($git->getBranches() ?? [] as $branch) {
-			if($branch === "master")
-				continue;
-			$count = substr($branch, 8);
-			$count += (int)$count;
-		}
-		$git->createBranch("Rollback".$count, true);
-		if($this->getServer()->isRunning()) {
-			$this->getServer()->getAsyncPool()->submitTask(new RollbackLevelTask($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $level->getFolderName(), $commit, $force));
-		}
+		$git->reset($commit);
 		self::recursiveCopyAddGit($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName(), $level->getProvider()->getPath());
 		return true;
 	}
 
 	/**
-	 * @param string $commit
+	 * @param int $saveCount
 	 * @param IPlayer $player
 	 * @param bool $force
 	 *
 	 * @return bool
 	 * @throws GitException
 	 */
-	public function rollbackPlayerFromCommit(string $commit, IPlayer $player, bool $force = false) : bool {
-		if($player instanceof Player) {
-			$return = $player->kick("Your user information is being rolled back", false);
+	public function rollbackPlayer(int $saveCount, IPlayer $player, bool $force = false) : bool {
+		if($player->isOnline()) {
+			$return = $player->kick("Your player data is being rolled back", false);
 			if(!$return and $force) {
-				$player->close($player->getLeaveMessage(), "Your user information is being rolled back");
+				$player->close($player->getLeaveMessage(), "Your player data is being rolled back");
 			}elseif(!$return) {
 				return false;
 			}
 		}
 		$git = new GitRepository($this->getDataFolder()."players");
+		$commit = $git->getLastFileCommitId(strtolower($player->getName()).".dat", $saveCount);
+		if(!is_string($commit)) {
+			return false;
+		}
 		if($this->getServer()->isRunning()) {
 			$this->getServer()->getAsyncPool()->submitTask(new RollbackPlayerTask($this->getDataFolder()."players", $player->getName(), $commit, $force));
 			return true;
 		}
 		$git->checkoutFile($commit, strtolower($player->getName()).".dat");
-		$count = 1;
-		foreach($git->getBranches() ?? [] as $branch) {
-			if($branch === "master")
-				continue;
-			$count = substr($branch, 8);
-			$count += (int)$count;
-		}
-		$git->createBranch("Rollback".$count, true);
 		self::recursiveCopyAddGit($this->getDataFolder()."players", $this->getServer()->getDataPath()."players".DIRECTORY_SEPARATOR);
 		return true;
-	}
-
-	/**
-	 * @param Level $level
-	 *
-	 * @return string
-	 * @throws GitException
-	 */
-	public function getLastLevelCommit(Level $level) : string {
-		$git = new GitRepository($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName());
-		return $git->getLastCommitId();
-	}
-
-	/**
-	 * @param IPlayer|null $player
-	 *
-	 * @return string
-	 * @throws GitException
-	 */
-	public function getLastPlayerCommit(?IPlayer $player = null) : string {
-		$git = new GitRepository($this->getDataFolder()."players");
-		if($player instanceof IPlayer) {
-			return $git->getLastFileCommitId(strtolower($player->getName()).".dat") ?? "";
-		}
-		return $git->getLastCommitId() ?? "";
-	}
-
-	/**
-	 * @param \DateTime $timestamp
-	 * @param GitRepository $git
-	 *
-	 * @return string
-	 * @throws GitException
-	 */
-	public static function findCommitByTimestamp(\DateTime $timestamp, GitRepository $git) : string {
-		$timestamp = $timestamp->format('Y-m-d H:i:s');
-		$output = $git->execute(['log', '--grep='.$timestamp]);
-		return substr($output[0], strlen("commit "));
 	}
 
 	/**
