@@ -204,8 +204,10 @@ class Main extends PluginBase implements Listener {
 				if($ret != 0 and file_exists($this->getDataFolder()."git".DIRECTORY_SEPARATOR."cmd".DIRECTORY_SEPARATOR."git.exe")) {
 					exec("set PATH=%PATH%;".$this->getDataFolder()."git".DIRECTORY_SEPARATOR."cmd");
 					exec($cmd . ' 2>&1', $output, $ret);
-					if($ret != 0)
+					if($ret != 0) {
 						GitRepository::setGitInstallation($this->getDataFolder()."git".DIRECTORY_SEPARATOR."cmd".DIRECTORY_SEPARATOR."git.exe");
+						exec($this->getDataFolder()."git".DIRECTORY_SEPARATOR."cmd".DIRECTORY_SEPARATOR."git.exe help -g 2>&1", $output, $ret);
+					}
 				}
 				return $ret == 0;
 			break;
