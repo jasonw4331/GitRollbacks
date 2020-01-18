@@ -56,7 +56,7 @@ class RollbackCommand extends Command {
 			if($this->plugin->rollbackLevel((int)$args[2], $level, $force)) {
 				$sender->sendMessage(TextFormat::GREEN."Rollback Task for world '".$levelName."' started successfully");
 			}else{
-				// TODO send error message
+				$sender->sendMessage(TextFormat::RED."There was an Error. The requested data could not be rolled back.");
 			}
 		}elseif(strtolower($args[0]) === "player") {
 			$player = $this->plugin->getServer()->getPlayer($args[1]) ?? new OfflinePlayer(Server::getInstance(), $args[1]);
@@ -69,7 +69,7 @@ class RollbackCommand extends Command {
 			if($this->plugin->rollbackPlayer((int)$args[2], $player, $force)) {
 				$sender->sendMessage(TextFormat::GREEN."Rollback Task for '".$args[1]."' started successfully");
 			}else{
-				// TODO send error message
+				$sender->sendMessage(TextFormat::RED."There was an Error. The requested data could not be rolled back.");
 			}
 		}else{
 			throw new InvalidCommandSyntaxException();
