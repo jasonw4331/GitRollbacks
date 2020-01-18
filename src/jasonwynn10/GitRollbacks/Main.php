@@ -30,7 +30,7 @@ class Main extends PluginBase implements Listener {
 			$dir = opendir($source);
 			@mkdir($destination);
 			while(false !== ( $file = readdir($dir)) ) {
-				if (( $file != '.' ) && ( $file != '..' )) {
+				if (( $file != '.' ) && ( $file != '..' ) && ( $file != '.git' )) {
 					if ( is_dir($source . '/' . $file) ) {
 						self::recursiveCopyAddGit($source . '/' . $file, $destination . '/' . $file);
 					}else {
