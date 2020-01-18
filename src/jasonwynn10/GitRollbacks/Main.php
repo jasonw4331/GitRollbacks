@@ -195,11 +195,13 @@ class Main extends PluginBase implements Listener {
 		$cmd = 'git help -g';
 		switch(Utils::getOS()) {
 			case "linux":
-				exec($cmd . ' 2>&1', $output, $ret = 0);
+				$ret = 0;
+				exec($cmd . ' 2>&1', $output, $ret);
 				return $ret == 0;
 			break;
 			case "win":
-				exec($cmd . ' 2>&1', $output, $ret = 0);
+				$ret = 0;
+				exec($cmd . ' 2>&1', $output, $ret);
 				if(file_exists($this->getDataFolder()."git".DIRECTORY_SEPARATOR."cmd".DIRECTORY_SEPARATOR."git.exe")) {
 					exec("set PATH=%PATH%;".$this->getDataFolder()."git".DIRECTORY_SEPARATOR."cmd");
 					//GitRepository::setGitInstallation($this->getDataFolder()."git".DIRECTORY_SEPARATOR."cmd".DIRECTORY_SEPARATOR."git.exe");
@@ -208,7 +210,8 @@ class Main extends PluginBase implements Listener {
 				return $ret == 0;
 			break;
 			case "mac": // TODO: is mac different?
-				exec($cmd . ' 2>&1', $output, $ret = 0);
+				$ret = 0;
+				exec($cmd . ' 2>&1', $output, $ret);
 				return $ret == 0;
 			break;
 			default:
