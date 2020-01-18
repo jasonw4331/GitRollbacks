@@ -103,14 +103,6 @@ class Main extends PluginBase implements Listener {
 			return true;
 		}
 		$git->checkoutFile($commit, strtolower($player->getName()).".dat");
-		$count = 1;
-		foreach($git->getBranches() ?? [] as $branch) {
-			if($branch === "master")
-				continue;
-			$count = substr($branch, 8);
-			$count += (int)$count;
-		}
-		$git->createBranch("Rollback".$count, true);
 		self::recursiveCopyAddGit($this->getDataFolder()."players", $this->getServer()->getDataPath()."players".DIRECTORY_SEPARATOR);
 		return true;
 	}
