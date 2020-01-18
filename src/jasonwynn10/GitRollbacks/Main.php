@@ -194,38 +194,24 @@ class Main extends PluginBase implements Listener {
 	private function isGitInstalled() : bool {
 		switch(Utils::getOS()) {
 			case "linux":
-				$ret = 0;
 				$cmd = 'git help -g';
-				try{
-					exec($cmd . ' 2>&1', $output, $ret);
-					// TODO: detect local installation
-				}finally{
-					return $ret == 0;
-				}
+				exec($cmd . ' 2>&1', $output, $ret = 0);
+				return $ret == 0;
 			break;
 			case "win":
-				$ret = 0;
 				$cmd = 'git help -g';
-				try{
+				exec($cmd . ' 2>&1', $output, $ret = 0);
+				if(file_exists($this->getDataFolder()."git".DIRECTORY_SEPARATOR."cmd".DIRECTORY_SEPARATOR."git.exe")) {
+					exec("set PATH=%PATH%;".$this->getDataFolder()."git".DIRECTORY_SEPARATOR."cmd");
+					//GitRepository::setGitInstallation($this->getDataFolder()."git".DIRECTORY_SEPARATOR."cmd".DIRECTORY_SEPARATOR."git.exe");
 					exec($cmd . ' 2>&1', $output, $ret);
-					if(file_exists($this->getDataFolder()."git".DIRECTORY_SEPARATOR."cmd".DIRECTORY_SEPARATOR."git.exe")) {
-						exec("set PATH=%PATH%;".$this->getDataFolder()."git".DIRECTORY_SEPARATOR."cmd");
-						//GitRepository::setGitInstallation($this->getDataFolder()."git".DIRECTORY_SEPARATOR."cmd".DIRECTORY_SEPARATOR."git.exe");
-						exec($cmd . ' 2>&1', $output, $ret);
-					}
-				}finally{
-					return $ret == 0;
 				}
+				return $ret == 0;
 			break;
 			case "mac": // TODO: is mac different?
-				$ret = 0;
 				$cmd = 'git help -g';
-				try{
-					exec($cmd . ' 2>&1', $output, $ret);
-					// TODO: detect local installation
-				}finally{
-					return $ret == 0;
-				}
+				exec($cmd . ' 2>&1', $output, $ret = 0);
+				return $ret == 0;
 			break;
 			default:
 				throw new PluginException("The OS of this device does not support git installation.");
