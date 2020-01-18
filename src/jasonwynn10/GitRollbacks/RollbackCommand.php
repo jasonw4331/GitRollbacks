@@ -16,7 +16,7 @@ class RollbackCommand extends Command {
 	protected $plugin;
 
 	public function __construct(Main $plugin) {
-		parent::__construct("rollback", "trigger a world rollback on the selected world", "/rollback world <world: string> <saves: int> [force: boolean] OR /rollback player <player: target> <saves: int> [force: boolean]", ["rb"]);
+		parent::__construct("rollback", "trigger a world rollback on the selected world", "/rollback world <world: string> [saves: int] [force: boolean] OR /rollback player <player: target> [saves: int] [force: boolean]", ["rb"]);
 		$this->setPermission("rollback");
 		$this->plugin = $plugin;
 	}
@@ -52,7 +52,7 @@ class RollbackCommand extends Command {
 			}elseif(isset($args[3])) {
 				$force = true;
 			}
-			if($this->plugin->rollbackLevel((int)$args[2], $level, $force)) {
+			if($this->plugin->rollbackLevel((int)($args[2] ?? 2), $level, $force)) {
 				$sender->sendMessage(TextFormat::GREEN."Rollback Task for world '".$args[1]."' started successfully");
 			}else{
 				$sender->sendMessage(TextFormat::RED."There was an Error. The requested data could not be rolled back.");
@@ -65,7 +65,7 @@ class RollbackCommand extends Command {
 				$force = true;
 			}
 
-			if($this->plugin->rollbackPlayer((int)$args[2], $player, $force)) {
+			if($this->plugin->rollbackPlayer((int)($args[2] ?? 2), $player, $force)) {
 				$sender->sendMessage(TextFormat::GREEN."Rollback Task for '".$args[1]."' started successfully");
 			}else{
 				$sender->sendMessage(TextFormat::RED."There was an Error. The requested data could not be rolled back.");
