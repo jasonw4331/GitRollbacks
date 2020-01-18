@@ -21,6 +21,7 @@ class Main extends PluginBase implements Listener {
 		}
 		if(!$this->isGitInstalled()) {
 			Server::getInstance()->getAsyncPool()->submitTask(new GitInstallTask($this->getDataFolder()));
+			$this->getLogger()->notice("Please ignore the following error message. This is intended");
 			throw new PluginException("Git is not installed. Plugin startup will be delayed until the installation is completed.");
 		}
 	}
