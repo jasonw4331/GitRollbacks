@@ -40,7 +40,7 @@ class RollbackCommand extends Command {
 
 		if(strtolower($args[0]) === "world") {
 			$level = $this->plugin->getServer()->getLevelByName($args[1]);
-			if($level instanceof Level) {
+			if(!$level instanceof Level) {
 				$sender->sendMessage(TextFormat::RED."Level not found.");
 				return true;
 			}
