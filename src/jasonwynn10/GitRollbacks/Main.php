@@ -92,10 +92,10 @@ class Main extends PluginBase implements Listener {
 	 * @throws GitException
 	 */
 	public function rollbackPlayer(int $saveCount, IPlayer $player, bool $force = false) : bool {
-		if($player instanceof Player) {
-			$return = $player->kick("Your user information is being rolled back", false);
+		if($player->isOnline()) {
+			$return = $player->kick("Your player data is being rolled back", false);
 			if(!$return and $force) {
-				$player->close($player->getLeaveMessage(), "Your user information is being rolled back");
+				$player->close($player->getLeaveMessage(), "Your player data is being rolled back");
 			}elseif(!$return) {
 				return false;
 			}
