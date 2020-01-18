@@ -1,6 +1,6 @@
 name: GitRollbacks
 main: jasonwynn10\GitRollbacks\Main
-version: 0.2.0
+version: 0.3.0
 api: 3.0.0
 description: ""
 author: "jasonwynn10"
