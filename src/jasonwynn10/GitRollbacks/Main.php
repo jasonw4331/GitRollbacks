@@ -123,31 +123,6 @@ class Main extends PluginBase implements Listener {
 	}
 
 	/**
-	 * @param Level $level
-	 *
-	 * @return string
-	 * @throws GitException
-	 */
-	public function getLastLevelCommit(Level $level) : string {
-		$git = new GitRepository($this->getDataFolder()."worlds".DIRECTORY_SEPARATOR.$level->getFolderName());
-		return $git->getLastCommitId();
-	}
-
-	/**
-	 * @param IPlayer|null $player
-	 *
-	 * @return string
-	 * @throws GitException
-	 */
-	public function getLastPlayerCommit(?IPlayer $player = null) : string {
-		$git = new GitRepository($this->getDataFolder()."players");
-		if($player instanceof IPlayer) {
-			return $git->getLastFileCommitId(strtolower($player->getName()).".dat") ?? "";
-		}
-		return $git->getLastCommitId() ?? "";
-	}
-
-	/**
 	 * @param LevelLoadEvent $event
 	 *
 	 * @throws GitException
