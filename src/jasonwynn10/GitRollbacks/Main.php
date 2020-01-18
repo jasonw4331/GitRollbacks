@@ -44,7 +44,7 @@ class Main extends PluginBase implements Listener {
 			while(false !== ( $file = readdir($dir)) ) {
 				if (( $file != '.' ) && ( $file != '..' ) && ( $file != '.git' )) {
 					if ( is_dir($source . '/' . $file) ) {
-						self::recursiveCopyAddGit($source . '/' . $file, $destination . '/' . $file);
+						self::recursiveCopyAddGit($source . '/' . $file, $destination . '/' . $file, $git);
 					}else {
 						touch($destination . '/' . $file);
 						copy($source . '/' . $file, $destination . '/' . $file);
@@ -115,7 +115,7 @@ class Main extends PluginBase implements Listener {
 			return true;
 		}
 		$git->checkoutFile($commit, strtolower($player->getName()).".dat");
-		self::recursiveCopyAddGit($this->getDataFolder()."players", $this->getServer()->getDataPath()."players".DIRECTORY_SEPARATOR);
+		self::recursiveCopyAddGit($this->getDataFolder()."players".DIRECTORY_SEPARATOR.strtolower($player->getName()).".dat", $this->getServer()->getDataPath()."players".DIRECTORY_SEPARATOR.strtolower($player->getName()).".dat");
 		return true;
 	}
 
