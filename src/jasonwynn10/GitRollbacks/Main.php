@@ -9,7 +9,6 @@ use pocketmine\event\player\PlayerDataSaveEvent;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\IPlayer;
 use pocketmine\level\Level;
-use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 
 class Main extends PluginBase implements Listener {
